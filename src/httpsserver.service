@@ -1,0 +1,15 @@
+[Unit]
+Description=HTTPS Server Service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/camera/bin
+Environment=SERVE_DIRECTORY=/opt/janus/share/janus/demos
+ExecStart=node /opt/camera/bin/httpsserver.js
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

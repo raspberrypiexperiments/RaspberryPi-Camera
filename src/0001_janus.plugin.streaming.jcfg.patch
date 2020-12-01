@@ -1,0 +1,108 @@
+--- a/opt/janus/etc/janus/janus.plugin.streaming.jcfg	2020-11-22 10:30:15.605612974 +0100
++++ b/opt/janus/etc/janus/janus.plugin.streaming.jcfg	2020-11-22 10:38:12.255277293 +0100
+@@ -114,21 +114,21 @@
+ # plugins/streams folder sends to. Whatever is sent to those ports will
+ # be the source of a WebRTC broadcast users can subscribe to.
+ #
+-rtp-sample: {
+-	type = "rtp"
+-	id = 1
+-	description = "Opus/VP8 live stream coming from external source"
+-	metadata = "You can use this metadata section to put any info you want!"
+-	audio = true
+-	video = true
+-	audioport = 5002
+-	audiopt = 111
+-	audiortpmap = "opus/48000/2"
+-	videoport = 5004
+-	videopt = 100
+-	videortpmap = "VP8/90000"
+-	secret = "adminpwd"
+-}
++#rtp-sample: {
++	#type = "rtp"
++	#id = 1
++	#description = "Opus/VP8 live stream coming from external source"
++	#metadata = "You can use this metadata section to put any info you want!"
++	#audio = true
++	#video = true
++	#audioport = 5002
++	#audiopt = 111
++	#audiortpmap = "opus/48000/2"
++	#videoport = 5004
++	#videopt = 100
++	#videortpmap = "VP8/90000"
++	#secret = "adminpwd"
++#}
+ 
+ #
+ # This is a sample of the file-based streaming support. Specifically,
+@@ -137,15 +137,15 @@
+ # this mountpoint will listen to the same broadcast as if it were live.
+ # Notice that file-based streaming supports Opus files too, but no video.
+ #
+-file-live-sample: {
+-	type = "live"
+-	id = 2
+-	description = "a-law file source (radio broadcast)"
+-	filename = "/opt/janus/share/janus/streams/radio.alaw"
+-	audio = true
+-	video = false
+-	secret = "adminpwd"
+-}
++#file-live-sample: {
++	#type = "live"
++	#id = 2
++	#description = "a-law file source (radio broadcast)"
++	#filename = "/opt/janus/share/janus/streams/radio.alaw"
++	#audio = true
++	#video = false
++	#secret = "adminpwd"
++#}
+ 
+ #
+ # This is another sample of the file-based streaming support, but using
+@@ -155,15 +155,15 @@
+ # of the stream, meaning that it will start from the beginning and then
+ # loop when it's over. On-demand streaming supports Opus files as well.
+ #
+-file-ondemand-sample: {
+-	type = "ondemand"
+-	id = 3
+-	description = "mu-law file source (music)"
+-	filename = "/opt/janus/share/janus/streams/music.mulaw"
+-	audio = true
+-	video = false
+-	secret = "adminpwd"
+-}
++#file-ondemand-sample: {
++	#type = "ondemand"
++	#id = 3
++	#description = "mu-law file source (music)"
++	#filename = "/opt/janus/share/janus/streams/music.mulaw"
++	#audio = true
++	#video = false
++	#secret = "adminpwd"
++#}
+ 
+ #
+ # All browsers also support H.264, often through Cisco's OpenH264 plugin.
+@@ -186,6 +186,18 @@
+ 	#videofmtp = "profile-level-id=42e01f;packetization-mode=1"
+ 	#secret = "adminpwd"
+ #}
++rpi-camera-h264: {
++	type = "rtp"
++	id = 314
++	description = "H.264 live stream coming from gstreamer"
++	audio = false
++	video = true
++	videoport = 31415
++	videopt = 126
++	videortpmap = "H264/90000"
++	videofmtp = "profile-level-id=42e01f;packetization-mode=1"
++	#secret = "adminpwd"
++}
+ 
+ #
+ # The Streaming plugin also supports the broadcasting of datachannel
