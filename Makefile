@@ -1,7 +1,7 @@
 install:
 	sudo apt update
 	sudo apt upgrade -y
-	#sudo apt install -y python-gst-1.0 gir1.2-gst-rtsp-server-1.0 python3-netifaces libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+	sudo apt install -y python3-netifaces
 	cd gst-rpicamsrc && ./autogen.sh --prefix=/usr/local --libdir=/usr/local/lib/arm-linux-gnueabihf/ && make && sudo make install 
 	rm -rf httpsserver.js
 	wget https://gist.githubusercontent.com/bencentra/909830fb705d5892b9324cffbca3926f/raw/a80edf0fdf0f38e4a43210e6438cbe511acc21a7/server.js -O httpsserver.js
