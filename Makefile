@@ -64,6 +64,7 @@ install: dependencies
 	sudo systemctl start camera.service
 	sleep 3
 	sudo systemctl status camera.service
+	sudo ln -s /home/pi/media /opt/camera/share/camera/media
 
 uninstall:
 	sudo systemctl daemon-reload
