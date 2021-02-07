@@ -1,25 +1,504 @@
+<!------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2021 Marcin Sielski <marcin.sielski@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+------------------------------------------------------------------------------->
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Raspberry Pi Camera</title>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/7.4.0/adapter.min.js" ></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" ></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.1/bootbox.min.js"></script>
-<script type="text/javascript" src="janus.js" ></script>
-<script type="text/javascript" src="camera.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.5.3/cerulean/bootstrap.min.css" type="text/css"/>
-<link rel="stylesheet" href="camera.css" type="text/css"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css"/>
-</head>
-<body style="background-color: black">
-
-<div class="container">
-	<div class="camera" id="stream"></div>
-</div>
-
-</body>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>Raspberry Pi Camera</title>
+		<script type="text/javascript" src="node_modules/webrtc-adapter/out/adapter.min.js"></script>
+		<script type="text/javascript" src="node_modules/jquery/dist/jquery.slim.min.js"></script>
+		<script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+		<script type="text/javascript" src="node_modules/bootbox/dist/bootbox.min.js"></script>
+		<script type="text/javascript" src="janus.min.js"></script>
+		<!--<script type="text/javascript" src="janus.js"></script>-->
+		<script type="text/javascript" src="camera.js"></script>
+		<script type="text/javascript" src="node_modules/@fortawesome/fontawesome-free/js/all.min.js"></script>
+		<link type="image/x-icon" rel="icon" href="favicon.ico">
+		<link type="text/css" rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+		<!-- camera.css overloads bootstrap.min.css styles -->
+		<link type="text/css" rel="stylesheet" href="camera.css">
+		<link type="text/css" rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+	</head>
+	<body style="background-color: #1d2124">
+		<div class="container">
+			<div class="row fixed-top" onclick="collapse()">
+				<div class="camera col" id="stream"></div>
+			</div>
+			<div class="row fixed-bottom">
+				<div class="accordion col" style="width: 100%" id="management">
+					<div class="card text-white bg-dark">	  
+		  				<div class="card-header" id="quality">
+							<h2 class="mb-0">
+			  					<button class="btn btn-dark btn-block text-left collapsed btn-lg" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+									Quality 
+									<span class="badge badge-light hide" id="model"></span>
+									<span class="badge badge-light hide" id="status"></span>
+									<span class="badge badge-light hide" id="curres"></span>
+									<span class="badge badge-light hide" id="curbitrate"></span>
+			  					</button>
+							</h2>
+		  				</div>	  
+		  				<div id="collapseOne" class="collapse" aria-labelledby="quality" data-parent="#management">
+							<button type="button" class="btn btn-lg btn-dark hide" disabled id="resolution_button">Resolution</button>
+							<select class="form-select form-control-lg bg-dark text-light hide" aria-label="resolution" onchange="change('resolution')" id="resolution">
+								<option value="1280x720" id="hd">1280x720 16:9</option>
+								<option value="1024x768" id="xga">1024x768 4:3</option>
+								<option value="960x540" id="qhd">&nbsp;&nbsp;960x540 16:9</option>
+								<option value="800x600" id="svga" selected>&nbsp;&nbsp;800x600 4:3</option>
+								<option value="800x450" id="wvga">&nbsp;&nbsp;800x450 16:9</option>
+								<option value="640x480" id="vga">&nbsp;&nbsp;640x480 4:3</option>
+							</select>			
+							<button type="button" class="btn btn-lg btn-dark" disabled>Bitrate</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="bitrate" onchange="change('bitrate')" id="bitrate">
+								<option value="5000000">5000000</option>
+								<option value="4000000" selected>4000000</option>
+								<option value="3000000">3000000</option>
+								<option value="2000000">2000000</option>
+								<option value="1000000">1000000</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark hide" id="zoom_button" disabled>Zoom</button>
+							<button type="button" class="btn btn-lg btn-dark hide" id="zoom_in_button" onclick="zoom_in()"><i class="fas fa-plus"></i></button>
+							<button type="button" class="btn btn-lg btn-dark hide" id="zoom_out_button" onclick="zoom_out()"><i class="fas fa-minus"></i></button>
+							<button type="button" class="btn btn-lg btn-dark hide" id="sensor_mode_button" disabled>Sensor Mode</button>
+							<select class="form-select form-control-lg bg-dark text-light hide" aria-label="sensor_mode" onchange="change('sensor_mode')" id="sensor_mode">
+								<option value="7" id="sensor_mode_7"></option>
+								<option value="6" id="sensor_mode_6"></option>
+								<option value="5" id="sensor_mode_5"></option>
+								<option value="4" id="sensor_mode_4"></option>
+								<option value="3" id="sensor_mode_3"></option>
+								<option value="2" id="sensor_mode_2"></option>
+								<option value="1" id="sensor_mode_1"></option>
+								<option value="0" id="sensor_mode_0" selected></option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark hide" disabled id="framerate_button">Framerate</button>
+							<select class="form-select form-control-lg bg-dark text-light hide" aria-label="framerate" onchange="change('framerate')" id="framerate">
+								<option value="50">50</option>
+								<option value="45">45</option>
+								<option value="40">40</option>
+								<option value="35">35</option>
+								<option value="30">30</option>
+								<option value="25">25</option>
+								<option value="20">20</option>
+								<option value="15" selected>15</option>
+								<option value="10">10</option>
+								<option value="5">&nbsp;&nbsp;5</option>
+							</select>	
+						</div>
+						<div class="card-header" id="effects">
+							<h2 class="mb-0">
+								<button class="btn btn-dark btn-block text-left collapsed btn-lg" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+									Effects
+								</button>
+							</h2>
+						</div>	  
+						<div id="collapseTwo" class="collapse" aria-labelledby="effects" data-parent="#management">
+							<button type="button" class="btn btn-lg btn-dark" disabled>Brightness</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="brightness" onchange="change('brightness')" id="brightness">
+								<option value="100">100</option>
+								<option value="95">&nbsp;&nbsp;95</option>
+								<option value="90">&nbsp;&nbsp;90</option>
+								<option value="85">&nbsp;&nbsp;85</option>
+								<option value="80">&nbsp;&nbsp;80</option>
+								<option value="75">&nbsp;&nbsp;75</option>
+								<option value="70">&nbsp;&nbsp;70</option>
+								<option value="65">&nbsp;&nbsp;65</option>
+								<option value="60">&nbsp;&nbsp;60</option>
+								<option value="55">&nbsp;&nbsp;55</option>
+								<option value="50" selected>&nbsp;&nbsp;50</option>
+								<option value="45">&nbsp;&nbsp;45</option>
+								<option value="40">&nbsp;&nbsp;40</option>
+								<option value="35">&nbsp;&nbsp;35</option>
+								<option value="30">&nbsp;&nbsp;30</option>
+								<option value="25">&nbsp;&nbsp;25</option>
+								<option value="20">&nbsp;&nbsp;20</option>
+								<option value="15">&nbsp;&nbsp;15</option>
+								<option value="10">&nbsp;&nbsp;10</option>
+								<option value="5">&nbsp;&nbsp;&nbsp;&nbsp;5</option>
+								<option value="0">&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+							</select>			
+							<button type="button" class="btn btn-lg btn-dark" disabled>Contrast</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="contrast" onchange="change('contrast')" id="contrast">
+								<option value="100">&nbsp;100</option>
+								<option value="90">&nbsp;&nbsp;&nbsp;90</option>
+								<option value="80">&nbsp;&nbsp;&nbsp;80</option>
+								<option value="70">&nbsp;&nbsp;&nbsp;70</option>
+								<option value="60">&nbsp;&nbsp;&nbsp;60</option>
+								<option value="50">&nbsp;&nbsp;&nbsp;50</option>
+								<option value="40">&nbsp;&nbsp;&nbsp;40</option>
+								<option value="30">&nbsp;&nbsp;&nbsp;30</option>
+								<option value="20">&nbsp;&nbsp;&nbsp;20</option>
+								<option value="10">&nbsp;&nbsp;&nbsp;10</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+								<option value="-10">&nbsp;&nbsp;-10</option>
+								<option value="-20">&nbsp;&nbsp;-20</option>
+								<option value="-30">&nbsp;&nbsp;-30</option>
+								<option value="-40">&nbsp;&nbsp;-40</option>
+								<option value="-50">&nbsp;&nbsp;-50</option>
+								<option value="-60">&nbsp;&nbsp;-60</option>
+								<option value="-70">&nbsp;&nbsp;-70</option>
+								<option value="-80">&nbsp;&nbsp;-80</option>
+								<option value="-90">&nbsp;&nbsp;-90</option>
+								<option value="-100">-100</option>
+							</select>			
+							<button type="button" class="btn btn-lg btn-dark" disabled>Sharpness</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="sharpness" onchange="change('sharpness')" id="sharpness">
+								<option value="100">&nbsp;100</option>
+								<option value="90">&nbsp;&nbsp;&nbsp;90</option>
+								<option value="80">&nbsp;&nbsp;&nbsp;80</option>
+								<option value="70">&nbsp;&nbsp;&nbsp;70</option>
+								<option value="60">&nbsp;&nbsp;&nbsp;60</option>
+								<option value="50">&nbsp;&nbsp;&nbsp;50</option>
+								<option value="40">&nbsp;&nbsp;&nbsp;40</option>
+								<option value="30">&nbsp;&nbsp;&nbsp;30</option>
+								<option value="20">&nbsp;&nbsp;&nbsp;20</option>
+								<option value="10">&nbsp;&nbsp;&nbsp;10</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+								<option value="-10">&nbsp;&nbsp;-10</option>
+								<option value="-20">&nbsp;&nbsp;-20</option>
+								<option value="-30">&nbsp;&nbsp;-30</option>
+								<option value="-40">&nbsp;&nbsp;-40</option>
+								<option value="-50">&nbsp;&nbsp;-50</option>
+								<option value="-60">&nbsp;&nbsp;-60</option>
+								<option value="-70">&nbsp;&nbsp;-70</option>
+								<option value="-80">&nbsp;&nbsp;-80</option>
+								<option value="-90">&nbsp;&nbsp;-90</option>
+								<option value="-100">-100</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Saturation</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="saturation" onchange="change('saturation')" id="saturation">
+								<option value="100">&nbsp;100</option>
+								<option value="90">&nbsp;&nbsp;&nbsp;90</option>
+								<option value="80">&nbsp;&nbsp;&nbsp;80</option>
+								<option value="70">&nbsp;&nbsp;&nbsp;70</option>
+								<option value="60">&nbsp;&nbsp;&nbsp;60</option>
+								<option value="50">&nbsp;&nbsp;&nbsp;50</option>
+								<option value="40">&nbsp;&nbsp;&nbsp;40</option>
+								<option value="30">&nbsp;&nbsp;&nbsp;30</option>
+								<option value="20">&nbsp;&nbsp;&nbsp;20</option>
+								<option value="10">&nbsp;&nbsp;&nbsp;10</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+								<option value="-10">&nbsp;&nbsp;-10</option>
+								<option value="-20">&nbsp;&nbsp;-20</option>
+								<option value="-30">&nbsp;&nbsp;-30</option>
+								<option value="-40">&nbsp;&nbsp;-40</option>
+								<option value="-50">&nbsp;&nbsp;-50</option>
+								<option value="-60">&nbsp;&nbsp;-60</option>
+								<option value="-70">&nbsp;&nbsp;-70</option>
+								<option value="-80">&nbsp;&nbsp;-80</option>
+								<option value="-90">&nbsp;&nbsp;-90</option>
+								<option value="-100">-100</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>DRC</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="drc" onchange="change('drc')" id="drc">
+								<option value="3">high</option>
+								<option value="2">medium</option>
+								<option value="1">low</option>
+								<option value="0" selected>off</option>
+							</select>	
+							<button type="button" class="btn btn-lg btn-dark" disabled>AWB</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="awb_mode" onchange="change('awb_mode')" id="awb_mode">
+								<option value="9">horizon</option>
+								<option value="8">flash</option>
+								<option value="7">incadescent</option>
+								<option value="6">fluorescent</option>
+								<option value="5">tungsten</option>
+								<option value="4">shade</option>
+								<option value="3">cloudy</option>
+								<option value="2">sunlight</option>
+								<option value="1" selected>auto</option>
+								<option value="0">off</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>MWB (Blue)</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="awb_gain_blue" onchange="change('awb_gain_blue')" id="awb_gain_blue">
+								<option value="8">8</option>
+								<option value="7">7</option>
+								<option value="6">6</option>
+								<option value="5">5</option>
+								<option value="4">4</option>
+								<option value="3">3</option>
+								<option value="2">2</option>
+								<option value="1">1</option>
+								<option value="0" selected>0</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>MWB (Red)</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="awb_gain_red" onchange="change('awb_gain_red')" id="awb_gain_red">
+								<option value="8">8</option>
+								<option value="7">7</option>
+								<option value="6">6</option>
+								<option value="5">5</option>
+								<option value="4">4</option>
+								<option value="3">3</option>
+								<option value="2">2</option>
+								<option value="1">1</option>
+								<option value="0" selected>0</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Image Effect</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="image_effect" onchange="change('image_effect')" id="image_effect">
+								<option value="22">cartoon</option>
+								<option value="21">colourbalance</option>
+								<option value="20">colourpoint</option>
+								<option value="19">posterise</option>
+								<option value="18">washedout</option>
+								<option value="17">colourswap</option>
+								<option value="16">saturation</option>
+								<option value="15">blur</option>
+								<option value="14">film</option>
+								<option value="13">watercolour</option>
+								<option value="12">pastel</option>
+								<option value="11">gpen</option>
+								<option value="10">hatch</option>
+								<option value="9">oilpaint</option>
+								<option value="8">emboss</option>
+								<option value="7">denoise</option>
+								<option value="6">sketch</option>
+								<!-- filters below are not supported by the
+									 camera
+								<option value="5">blackboard</option>
+								<option value="4">whiteboard</option>
+								<option value="3">posterize</option>-->
+								<option value="2">solarize</option>
+								<option value="1">negative</option>
+								<option value="0" selected>none</option>
+							</select>	
+						</div>
+						<div class="card-header" id="settings">
+							<h2 class="mb-0">
+								<button class="btn btn-dark btn-block text-left collapsed btn-lg" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+									Settings 
+								</button>
+							</h2>
+						</div>	  
+						<div id="collapseThree" class="collapse" aria-labelledby="settings" data-parent="#management">
+							<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Mode</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="exposure_mode" onchange="change('exposure_mode')" id="exposure_mode">
+								<option value="12">fireworks</option>
+								<option value="11">antishake</option>
+								<option value="10">fixedfps</option>
+								<option value="9">verylong</option>
+								<option value="8">beach</option>
+								<option value="7">snow</option>
+								<option value="6">sports</option>
+								<option value="5">spotlight</option>
+								<option value="4">backlight</option>
+								<option value="3">nightpreview</option>
+								<option value="2">night</option>
+								<option value="1" selected>auto</option>
+								<option value="0">off</option>
+							</select>	
+							<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Metering Mode</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="metering_mode" onchange="change('metering_mode')" id="metering_mode">
+								<option value="3">matrix</option>
+								<option value="2">backlist</option>
+								<option value="1">spot</option>
+								<option value="0" selected>average</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Compensation</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="exposure_compensation" onchange="change('exposure_compensation')" id="exposure_compensation">
+								<option value="10">&nbsp;10</option>
+								<option value="9">&nbsp;&nbsp;&nbsp;9</option>
+								<option value="8">&nbsp;&nbsp;&nbsp;8</option>
+								<option value="7">&nbsp;&nbsp;&nbsp;7</option>
+								<option value="6">&nbsp;&nbsp;&nbsp;6</option>
+								<option value="5">&nbsp;&nbsp;&nbsp;5</option>
+								<option value="4">&nbsp;&nbsp;&nbsp;4</option>
+								<option value="3">&nbsp;&nbsp;&nbsp;3</option>
+								<option value="2">&nbsp;&nbsp;&nbsp;2</option>
+								<option value="1">&nbsp;&nbsp;&nbsp;1</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;0</option>
+								<option value="-1">&nbsp;&nbsp;-1</option>
+								<option value="-2">&nbsp;&nbsp;-2</option>
+								<option value="-3">&nbsp;&nbsp;-3</option>
+								<option value="-4">&nbsp;&nbsp;-4</option>
+								<option value="-5">&nbsp;&nbsp;-5</option>
+								<option value="-6">&nbsp;&nbsp;-6</option>
+								<option value="-7">&nbsp;&nbsp;-7</option>
+								<option value="-8">&nbsp;&nbsp;-8</option>
+								<option value="-9">&nbsp;&nbsp;-9</option>
+								<option value="-10">-10</option>
+							</select>	
+							<button type="button" class="btn btn-lg btn-dark" disabled>ISO</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="iso" onchange="change('iso')" id="iso">
+								<option value="800">800</option>
+								<option value="700">700</option>
+								<option value="600">600</option>
+								<option value="500">500</option>
+								<option value="400">400</option>
+								<option value="300">300</option>
+								<option value="200">200</option>
+								<option value="100">100</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+							</select>	
+							<button type="button" class="btn btn-lg btn-dark" disabled>Shutter Speed</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="shutter_speed" onchange="change('shutter_speed')" id="shutter_speed">
+								<option value="500000">500 ms</option>
+								<option value="400000">400 ms</optio>
+								<option value="300000">300 ms</option>
+								<option value="200000">200 ms</option>
+								<option value="100000">100 ms</option>
+								<option value="90000">&nbsp;&nbsp;90 ms</option>
+								<option value="80000">&nbsp;&nbsp;80 ms</option>
+								<option value="70000">&nbsp;&nbsp;70 ms</option>
+								<option value="60000">&nbsp;&nbsp;60 ms</option>
+								<option value="50000">&nbsp;&nbsp;50 ms</option>
+								<option value="40000">&nbsp;&nbsp;40 ms</option>
+								<option value="30000">&nbsp;&nbsp;30 ms</option>
+								<option value="20000">&nbsp;&nbsp;20 ms</option>
+								<option value="10000">&nbsp;&nbsp;10 ms</option>
+								<option value="9000">&nbsp;&nbsp;&nbsp;&nbsp;9 ms</option>
+								<option value="8000">&nbsp;&nbsp;&nbsp;&nbsp;8 ms</option>
+								<option value="7000">&nbsp;&nbsp;&nbsp;&nbsp;7 ms</option>
+								<option value="6000">&nbsp;&nbsp;&nbsp;&nbsp;6 ms</option>
+								<option value="5000">&nbsp;&nbsp;&nbsp;&nbsp;5 ms</option>
+								<option value="4000">&nbsp;&nbsp;&nbsp;&nbsp;4 ms</option>
+								<option value="3000">&nbsp;&nbsp;&nbsp;&nbsp;3 ms</option>
+								<option value="2000">&nbsp;&nbsp;&nbsp;&nbsp;2 ms</option>
+								<option value="1000">&nbsp;&nbsp;&nbsp;&nbsp;1 ms</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto</option>
+							</select>	
+							<button type="button" class="btn btn-lg btn-dark" disabled>Video Stabilisation</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="video_stabilisation" onclick="change('video_stabilisation')"  id="video_stabilisation" value="0"><i class="fas fa-water"></i></button>
+							</select>	
+						</div>
+						<div class="card-header" id="orientation">
+							<h2 class="mb-0">
+								<button class="btn btn-dark btn-block text-left collapsed btn-lg" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+									Orientation 
+								</button>
+							</h2>
+						</div>	  
+						<div id="collapseFour" class="collapse" aria-labelledby="orientation" data-parent="#management">
+							<button type="button" class="btn btn-lg btn-dark" disabled>Rotation</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="rotation" onchange="change('rotation')" id="rotation">
+								<option value="270">270</option>
+								<option value="180">180</option>
+								<option value="90">&nbsp;&nbsp;90</option>
+								<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+							</select>					
+							<button type="button" class="btn btn-lg btn-dark" disabled>HFlip</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="hflip" onclick="change('hflip')" id="hflip" value="0"><i class="fas fa-arrows-alt-h"></i></button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>VFlip</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="vflip" onclick="change('vflip')" id="vflip" value="0"><i class="fas fa-arrows-alt-v"></i></button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Video Direction</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="video_direction" onchange="change('video_direction')" id="video_direction">
+								<!-- rotations below are either not supported by the gst-rpicamsrc or used internally
+								<option value="9">custom</option>
+								<option value="8">auto</option>-->
+								<option value="7">ur-ll</option>
+								<option value="6">ul-lr</option>
+								<option value="5">vert</option>
+								<option value="4">horiz</option>
+								<option value="3">90l</option>
+								<option value="2">180</option>
+								<option value="1">90r</option>
+								<option value="0" selected>identity</option>
+							</select>					
+						</div>
+						<div class="card-header" id="controls">
+							<h2 class="mb-0">
+								<button class="btn btn-dark btn-block text-left collapsed btn-lg" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFour">
+									Controls 
+								</button>
+							</h2>
+						</div>	  
+						<div id="collapseFive" class="collapse" aria-labelledby="controls" data-parent="#management">
+							<button type="button" class="btn btn-lg btn-dark" disabled>Restart</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="restart" onclick="change('restart')">
+								<i class="fas fa-sync-alt"></i>
+							</button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Statistics</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="stats" onclick="change('stats')" id="stats" value="0x00000000">
+								<i class="fas fa-chart-bar"></i>
+							</button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>RTSP</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="rtsp" onclick="change('rtsp')" id="rtsp" value="0">
+								<i class="fab fa-youtube"></i>
+							</button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Record</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="record" onclick="change('record')" id="record" value="0">
+								<i class="fas fa-dot-circle"></i>
+							</button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Format</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="format" onclick="change('format')" id="format" value="0">
+								<i class="fas fa-file-video"></i>
+							</button>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Max Files</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="max_files" onchange="change('max_files')" id="max_files">
+								<option value="100">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100</option>
+								<option value="90">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;90</option>
+								<option value="80">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;80</option>
+								<option value="70">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;70</option>
+								<option value="60">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;60</option>
+								<option value="50">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;50</option>
+								<option value="40">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;40</option>
+								<option value="30">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;30</option>
+								<option value="20">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;20</option>
+								<option value="10">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;10</option>
+								<option value="0" selected>unlimited</option>
+							</select>	
+							<button type="button" class="btn btn-lg btn-dark" disabled>Max Size</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="max_size_bytes" onchange="change('max_size_bytes')" id="max_size_bytes">
+								<option value="5000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 GB</option>
+								<option value="4000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4 GB</option>
+								<option value="3000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3 GB</option>
+								<option value="2000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2 GB</option>
+								<option value="1000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1 GB</option>
+								<option value="900000000">&nbsp;&nbsp;900 MB</option>
+								<option value="800000000">&nbsp;&nbsp;800 MB</option>
+								<option value="700000000">&nbsp;&nbsp;700 MB</option>
+								<option value="600000000">&nbsp;&nbsp;600 MB</option>
+								<option value="500000000">&nbsp;&nbsp;500 MB</option>
+								<option value="400000000">&nbsp;&nbsp;400 MB</option>
+								<option value="300000000">&nbsp;&nbsp;300 MB</option>
+								<option value="200000000">&nbsp;&nbsp;200 MB</option>
+								<option value="100000000">&nbsp;&nbsp;100 MB</option>
+								<option value="0" selected>unlimited</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Max Length</button>
+							<select class="form-select form-control-lg bg-dark text-light" aria-label="max_size_time" onchange="change('max_size_time')" id="max_size_time">
+								<option value="18000000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 h</option>
+								<option value="14400000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4 h</option>
+								<option value="10800000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3 h</option>
+								<option value="7200000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2 h</option>
+								<option value="3600000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1 h</option>
+								<option value="1800000000000">&nbsp;&nbsp;&nbsp;&nbsp;30 min</option>
+								<option value="900000000000">&nbsp;&nbsp;&nbsp;&nbsp;15 min</option>
+								<option value="600000000000">&nbsp;&nbsp;&nbsp;&nbsp;10 min</option>
+								<option value="300000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 min</option>
+								<option value="60000000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1 min</option>
+								<option value="0" selected>unlimited</option>
+							</select>
+							<button type="button" class="btn btn-lg btn-dark" disabled>Persistent</button>
+							<button type="button" class="btn btn-lg btn-dark" aria-label="persistent" onclick="change('persistent')" id="persistent" value="0">
+								<i class="fas fa-sd-card"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
 </html>

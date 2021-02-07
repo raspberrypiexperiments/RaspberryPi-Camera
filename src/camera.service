@@ -21,15 +21,16 @@
 # SOFTWARE.
 
 [Unit]
-Description=HTTPS Server Service
+Description=Camera Service
 
 [Service]
 Type=simple
 User=pi
 Group=pi
-WorkingDirectory=/opt/camera/bin
-Environment=SERVE_DIRECTORY=/opt/camera/share/camera
-ExecStart=node /opt/camera/bin/httpsserver.js
+WorkingDirectory=/home/pi/camera
+Environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages:/usr/local/lib/python3.7/site-packages 
+Environment=LD_LIBRARY_PATH=/usr/local/lib
+ExecStart=/usr/bin/taskset -c 0,1 /usr/bin/python3 /opt/camera/bin/camera.py
 StandardOutput=syslog
 StandardError=syslog
 
