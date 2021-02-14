@@ -179,19 +179,20 @@ $(document).ready(function() {
 											customizeSdp: function(jsep) {
 												if(
 													stereo && 
-													jsep.sdp.indexOf("stereo=1")
+													jsep.sdp.indexOf('stereo=1')
 													 == -1) {
 													// Make sure that our offer 
 													// contains stereo too
 													jsep.sdp = 
 													jsep.sdp.replace(
-														"useinbandfec=1",
-														"useinbandfec=1;stereo=1");
+														'useinbandfec=1',
+														'useinbandfec=1;'+
+														'stereo=1');
 												}
 											},
 											success: function(jsep) {
 												Janus.debug("Got SDP!", jsep);
-												var body = { request: "start" };
+												var body = { request: 'start' };
 												streaming.send({ 
 													message: body, 
 													jsep: jsep 
@@ -215,33 +216,50 @@ $(document).ready(function() {
 									if(this.videoWidth)
 										$('#remotevideo')
 										.removeClass('hide').show();
-									$('#stream').append('<video class="hide" id="remotevideo" width="100%" playsinline autoplay muted/>');
-									// Show the stream and hide the spinner when we get a playing event
-									$("#remotevideo").bind("playing", function () {
-										fetch("https://" + window.location.hostname + ":8888")
+									$('#stream').append(
+										'<video class="hide" id="remotevideo"' +
+										' width="100%" playsinline autoplay ' +
+										'muted/>');
+									// Show the stream and hide the spinner when
+									// we get a playing event
+									$("#remotevideo")
+									.bind("playing", function () {
+										fetch("https://" + 
+										window.location.hostname + ":8888")
 											.then(response => response.json())
 											.then(data => {
 												Janus.log(data)
 												display(data)													
 											})
-											.catch(error => console.error(error))
-										var videoTracks = stream.getVideoTracks();
-										if(!videoTracks || videoTracks.length === 0)
+											.catch(
+												error => console.error(error))
+										var videoTracks = 
+										stream.getVideoTracks();
+										if(!videoTracks || 
+											videoTracks.length === 0)
 											return;
 										var width = this.videoWidth;
 										var height = this.videoHeight;
-										$('#curres').removeClass('hide').text(width+'x'+height).show();
-										if(Janus.webRTCAdapter.browserDetails.browser === "firefox") {
-											// Firefox Stable has a bug: width and height are not immediately available after a playing
+										$('#curres').removeClass('hide')
+										.text(width+'x'+height).show();
+										if(Janus.webRTCAdapter.browserDetails
+											.browser === "firefox") {
+											// Firefox Stable has a bug: width 
+											// and height are not immediately 
+											// available after a playing
 											setTimeout(function() {
-												var width = $("#remotevideo").get(0).videoWidth;
-												var height = $("#remotevideo").get(0).videoHeight;
-												$('#curres').removeClass('hide').text(width+'x'+height).show();
+												var width = $("#remotevideo")
+												.get(0).videoWidth;
+												var height = $("#remotevideo")
+												.get(0).videoHeight;
+												$('#curres').removeClass('hide')
+												.text(width+'x'+height).show();
 											}, 2000);
 										}
 									});
 								}
-								Janus.attachMediaStream($('#remotevideo').get(0), stream);
+								Janus.attachMediaStream(
+									$('#remotevideo').get(0), stream);
 								var videoTracks = stream.getVideoTracks();
 								if(!videoTracks || videoTracks.length === 0) {
 									// No remote video
@@ -439,9 +457,9 @@ function display(data) {
 			')
 			$('#hd').removeClass('hide').show() // 1280x720 16:9
 			$('#xga').removeClass('hide').show() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x540 16:9
-			$('#svga').removeClass('hide').show() // 800x600 4:3
-			$('#wvga').removeClass('hide').show() // 800x450 16:9
+			$('#qhd').removeClass('hide').show() // 960x544 16:9
+			$('#svga').removeClass('hide').show() // 800x608 4:3
+			$('#wvga').removeClass('hide').show() // 800x448 16:9
 			$('#vga').removeClass('hide').show() // 640x480 4:3					
 			break
 		case 1: // 1920x1080 16:9 0.1-30fps partial
@@ -479,9 +497,9 @@ function display(data) {
 			')
 			$('#hd').removeClass('hide').show() // 1280x720 16:9
 			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x540 16:9
-			$('#svga').addClass('hide').hide() // 800x600 4:3
-			$('#wvga').removeClass('hide').show() // 800x450 16:9
+			$('#qhd').removeClass('hide').show() // 960x544 16:9
+			$('#svga').addClass('hide').hide() // 800x608 4:3
+			$('#wvga').removeClass('hide').show() // 800x448 16:9
 			$('#vga').addClass('hide').hide() // 640x480 4:3
 			break
 		case 2: // 3280x2464 4:3 0.1-15fps full
@@ -505,9 +523,9 @@ function display(data) {
 			')
 			$('#hd').addClass('hide').hide() // 1280x720 16:9
 			$('#xga').removeClass('hide').show() // 1024x768 4:3
-			$('#qhd').addClass('hide').hide() // 960x540 16:9
-			$('#svga').removeClass('hide').show() // 800x600 4:3
-			$('#wvga').addClass('hide').hide() // 800x450 16:9
+			$('#qhd').addClass('hide').hide() // 960x544 16:9
+			$('#svga').removeClass('hide').show() // 800x608 4:3
+			$('#wvga').addClass('hide').hide() // 800x448 16:9
 			$('#vga').removeClass('hide').show() // 640x480 4:3					
 			break
 		case 4: // 1640x1232 4:3 0.1-40fps full
@@ -555,9 +573,9 @@ function display(data) {
 			')
 			$('#hd').addClass('hide').hide() // 1280x720 16:9
 			$('#xga').removeClass('hide').show() // 1024x768 4:3
-			$('#qhd').addClass('hide').hide() // 960x540 16:9
-			$('#svga').removeClass('hide').show() // 800x600 4:3
-			$('#wvga').addClass('hide').hide() // 800x450 16:9
+			$('#qhd').addClass('hide').hide() // 960x544 16:9
+			$('#svga').removeClass('hide').show() // 800x608 4:3
+			$('#wvga').addClass('hide').hide() // 800x448 16:9
 			$('#vga').removeClass('hide').show() // 640x480 4:3
 			break
 		case 5: // 1640x922 16:9 0.1-40fps partial
@@ -605,9 +623,9 @@ function display(data) {
 			')
 			$('#hd').removeClass('hide').show() // 1280x720 16:9
 			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x540 16:9
-			$('#svga').addClass('hide').hide() // 800x600 4:3
-			$('#wvga').removeClass('hide').show() // 800x450 16:9
+			$('#qhd').removeClass('hide').show() // 960x544 16:9
+			$('#svga').addClass('hide').hide() // 800x608 4:3
+			$('#wvga').removeClass('hide').show() // 800x448 16:9
 			$('#vga').addClass('hide').hide() // 640x480 4:3
 			break
 		case 6: // 1280x720 16:9 40-90fps partial
@@ -636,9 +654,9 @@ function display(data) {
 			}
 			$('#hd').removeClass('hide').show() // 1280x720 16:9
 			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x540 16:9
-			$('#svga').addClass('hide').hide() // 800x600 4:3
-			$('#wvga').removeClass('hide').show() // 800x450 16:9
+			$('#qhd').removeClass('hide').show() // 960x544 16:9
+			$('#svga').addClass('hide').hide() // 800x608 4:3
+			$('#wvga').removeClass('hide').show() // 800x448 16:9
 			$('#vga').addClass('hide').hide() // 640x480 4:3
 			break
 		case 7: // 640x480 4:3 40-200fps partial
@@ -663,9 +681,9 @@ function display(data) {
 			')
 			$('#hd').addClass('hide').hide() // 1280x720 16:9
 			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').addClass('hide').hide() // 960x540 16:9
-			$('#svga').addClass('hide').hide() // 800x600 4:3
-			$('#wvga').addClass('hide').hide() // 800x450 16:9
+			$('#qhd').addClass('hide').hide() // 960x544 16:9
+			$('#svga').addClass('hide').hide() // 800x608 4:3
+			$('#wvga').addClass('hide').hide() // 800x448 16:9
 			$('#vga').removeClass('hide').show() // 640x480 4:3
 			break
 	}

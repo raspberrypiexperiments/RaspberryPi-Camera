@@ -47,6 +47,7 @@ import inspect
 from argparse import ArgumentParser, ArgumentTypeError
 import signal
 
+
 def name(obj):
 
 	"""
@@ -68,14 +69,14 @@ class Server(object):
 	Server Interface
 
 	Args:
-		object (obejct): base object
+		object (object): base object
 	"""
 
 
 	def init(self):
 
 		"""
-		Initilizes the Server
+		Initialize the Server
 		"""
 
 		pass
@@ -202,7 +203,7 @@ class CORSComponent(object):
 		Args:
 			req (Request): request
 			resp (Response): response
-			resournce (HTTPSServer): HTTPS Server
+			resource (HTTPSServer): HTTPS Server
 			req_succeeded (bool): indicated if request succeeded
 		"""
 
@@ -433,7 +434,7 @@ class CameraServer(Server):
 		self.__image_effect_lock__ = threading.Lock()
 		with picamera.PiCamera() as camera:
 			self.__model__ = camera.revision
-		self.__index__ = 0
+		# self.__index__ = 0
 		self.__fragment_id__ = 0
 
 		parameters = None
@@ -501,7 +502,7 @@ class CameraServer(Server):
 			# Quality
 
 			self.__width__ = 800
-			self.__height__ = 600
+			self.__height__ = 608
 			self.__framerate__ = 15
 			self.__bitrate__ = 4000000
 			self.__sensor_mode__ = 0
@@ -685,7 +686,7 @@ class CameraServer(Server):
 
 		self.__source__.link(self.__source_capsfilter__)
 		self.__source_capsfilter__.link(self.__raw_tee__)
-		self.__raw_tee__.link(self.__encoder__)                
+		self.__raw_tee__.link(self.__encoder__)           
 		self.__encoder__.link(self.__encoder_capsfilter__)
 		self.__encoder_capsfilter__.link(self.__parser_queue__)
 		self.__parser_queue__.link(self.__parser__)
@@ -701,6 +702,8 @@ class CameraServer(Server):
 
 		self.__file_queue__ = None
 		self.__file_rate__ = None
+		self.__file_converter__ = None
+		self.__file_encoder__ = None
 		self.__file_sink__ = None
 		self.__raw_framerate__ = 0
 
@@ -804,7 +807,6 @@ class CameraServer(Server):
 				pass
 			if parameters is not None:
 				parameters['persistent'] = self.__persistent__
-				print(parameters)
 				with open('camera.json', 'w') as config:
 					json.dump(parameters, config)
 		# if still streaming during shutdown
@@ -842,6 +844,12 @@ class CameraServer(Server):
 		if self.__file_rate__ is not None:
 			self.__file_rate__.set_state(Gst.State.NULL)
 			self.__file_rate__ = None
+		if self.__file_converter__ is not None:
+			self.__file_converter__.set_state(Gst.State.NULL)
+			self.__file_converter__ = None
+		if self.__file_encoder__ is not None:
+			self.__file_encoder__.set_state(Gst.State.NULL)
+			self.__file_encoder__ = None
 		if self.__file_sink__ is not None:
 			self.__file_sink__.set_state(Gst.State.NULL)
 			self.__file_sink__ = None
@@ -900,7 +908,7 @@ class CameraServer(Server):
 		Finalize recording
 
 		Returns:
-			bool: False to indicate execute onle once
+			bool: False to indicate execute only once
 		"""
 
 		function_name = "'" + threading.currentThread().name + "'." +\
@@ -912,6 +920,12 @@ class CameraServer(Server):
 		if self.__file_rate__ is not None:
 			self.__file_rate__.set_state(Gst.State.NULL)
 			self.__file_rate__ = None
+		if self.__file_converter__ is not None:
+			self.__file_converter__.set_state(Gst.State.NULL)
+			self.__file_converter__ = None
+		if self.__file_encoder__ is not None:
+			self.__file_encoder__.set_state(Gst.State.NULL)
+			self.__file_encoder__ = None
 		if self.__file_sink__ is not None:
 			self.__file_sink__.set_state(Gst.State.NULL)
 			self.__file_sink__ = None
@@ -938,7 +952,7 @@ class CameraServer(Server):
 	def __on_message__(self, bus, message):
 
 		"""
-		Hnadle messages on the bus
+		Handle messages on the bus
 
 		Returns:
 			BusSyncReply: with decision what to do further with the message
@@ -1000,53 +1014,57 @@ class CameraServer(Server):
 						# destroy pipeline
 						self.__pipeline__.remove(self.__file_queue__)
 						if self.__file_rate__ is not None:
-							self.__pipeline__.remove(self.__file_rate__)
+						 	self.__pipeline__.remove(self.__file_rate__)
+						if self.__file_converter__ is not None:
+						 	self.__pipeline__.remove(self.__file_converter__)
+						if self.__file_encoder__ is not None:
+						 	self.__pipeline__.remove(self.__file_encoder__)
 						self.__pipeline__.remove(self.__file_sink__)
 						GLib.timeout_add_seconds(0, self.__on_stop__)
 						return Gst.BusSyncReply.DROP
-			if s.has_name("GstMultiFileSink"):
-				self.__index__ = self.__file_sink__.get_property('index')
-				logging.debug(
-					function_name + ": self.__index__=" + str(self.__index__))
-				# NOTE(marcin.sielski): Workaround for index which cannot be set
-				# to -1.
-				if self.__index_changed__ and self.__index__ == 1:
-					self.__index__ = 0
-					self.__file_sink__.set_property('index', self.__index__)
-					self.__index_changed__ = False
-					filename = 'v_' + str(self.__width__) + 'x' +\
-						str(self.__height__) + '@' +\
-						str(self.__raw_framerate__) + '_I420_%02d.raw'
-					logging.debug(
-						function_name + ": " + 
-						filename.replace('_I420_%02d.raw','_I420_00.raw'))
-					self.__file_sink__.set_property('location',  filename)
-				elif self.__index__ >= self.__max_files__ - 1:
-					self.__index__ = 0
-					self.__file_sink__.set_property('index', self.__index__)
-					self.__index_changed__ = True
-					filename = 'v_' + str(self.__width__) + 'x' + \
-					str(self.__height__) + '@' + str(self.__raw_framerate__) + \
-					'_I420_00.raw'
-					logging.debug(
-						function_name + ": " + 
-						filename.replace('_I420_00.raw','_I420_09.raw'))
-					self.__file_sink__.set_property('location', filename)
-				elif self.__index__ == 0:
-					filename = 'v_' + str(self.__width__) + 'x' + \
-					str(self.__height__) + '@' + str(self.__raw_framerate__) + \
-					'_I420_00.raw'
-					logging.debug(function_name + ": " + filename)
-				elif self.__index_changed__:
-					filename = 'v_' + str(self.__width__) + 'x' + \
-					str(self.__height__) + '@' + str(self.__raw_framerate__) + \
-					'_I420_{0:0{1}}.raw'.format(self.__index__-1, 2)
-					logging.debug(function_name + ": " + filename)
-				else:
-					filename = 'v_' + str(self.__width__) + 'x' + \
-					str(self.__height__) + '@' + str(self.__raw_framerate__) + \
-					'_I420_{0:0{1}}.raw'.format(self.__index__, 2)
-					logging.debug(function_name + ": " + filename)
+			# if s.has_name("GstMultiFileSink"):
+			# 	self.__index__ = self.__file_sink__.get_property('index')
+			# 	logging.debug(
+			# 		function_name + ": self.__index__=" + str(self.__index__))
+			# 	# NOTE(marcin.sielski): Workaround for index which cannot be set
+			# 	# to -1.
+			# 	if self.__index_changed__ and self.__index__ == 1:
+			# 		self.__index__ = 0
+			# 		self.__file_sink__.set_property('index', self.__index__)
+			# 		self.__index_changed__ = False
+			# 		filename = 'v_' + str(self.__width__) + 'x' +\
+			# 			str(self.__height__) + '@' +\
+			# 			str(self.__raw_framerate__) + '_I420_%02d.raw'
+			# 		logging.debug(
+			# 			function_name + ": " + 
+			# 			filename.replace('_I420_%02d.raw','_I420_00.raw'))
+			# 		self.__file_sink__.set_property('location',  filename)
+			# 	elif self.__index__ >= self.__max_files__ - 1:
+			# 		self.__index__ = 0
+			# 		self.__file_sink__.set_property('index', self.__index__)
+			# 		self.__index_changed__ = True
+			# 		filename = 'v_' + str(self.__width__) + 'x' + \
+			# 		str(self.__height__) + '@' + str(self.__raw_framerate__) + \
+			# 		'_I420_00.raw'
+			# 		logging.debug(
+			# 			function_name + ": " + 
+			# 			filename.replace('_I420_00.raw','_I420_09.raw'))
+			# 		self.__file_sink__.set_property('location', filename)
+			# 	elif self.__index__ == 0:
+			# 		filename = 'v_' + str(self.__width__) + 'x' + \
+			# 		str(self.__height__) + '@' + str(self.__raw_framerate__) + \
+			# 		'_I420_00.raw'
+			# 		logging.debug(function_name + ": " + filename)
+			# 	elif self.__index_changed__:
+			# 		filename = 'v_' + str(self.__width__) + 'x' + \
+			# 		str(self.__height__) + '@' + str(self.__raw_framerate__) + \
+			# 		'_I420_{0:0{1}}.raw'.format(self.__index__-1, 2)
+			# 		logging.debug(function_name + ": " + filename)
+			# 	else:
+			# 		filename = 'v_' + str(self.__width__) + 'x' + \
+			# 		str(self.__height__) + '@' + str(self.__raw_framerate__) + \
+			# 		'_I420_{0:0{1}}.raw'.format(self.__index__, 2)
+			# 		logging.debug(function_name + ": " + filename)
 
 		elif t == Gst.MessageType.STATE_CHANGED:
 			# if rtsp-sink or file-sink
@@ -1103,7 +1121,7 @@ class CameraServer(Server):
 			'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
 		source.set_property('bitrate', 25000000)
 		# NOTE(marcin.sielski): camera-timeout property is not available in 
-		# regular GSrteamer builds.
+		# regular GStreamer builds.
 		source.set_property('camera-timeout', self.__camera_timeout__)
 
 		# Quality
@@ -1203,31 +1221,31 @@ class CameraServer(Server):
 		if self.__sensor_mode__ == 0:
 			self.__framerate__ = 15
 			self.__width__ = 800
-			self.__height__ = 600
+			self.__height__ = 608
 		if self.__sensor_mode__ == 1:
 			self.__framerate__ = 15
 			self.__width__ = 960
-			self.__height__ = 540
+			self.__height__ = 544
 		if self.__sensor_mode__ == 2:
 			self.__framerate__ = 15
 			self.__width__ = 800
-			self.__height__ = 600
+			self.__height__ = 608
 		if self.__sensor_mode__ == 3:
 			self.__framerate__ = 15
 			self.__width__ = 800
-			self.__height__ = 600
+			self.__height__ = 608
 		if self.__sensor_mode__ == 4:
 			self.__framerate__ = 15
 			self.__width__ = 800
-			self.__height__ = 600
+			self.__height__ = 608
 		if self.__sensor_mode__ == 5:
 			self.__framerate__ = 15
 			self.__width__ = 960
-			self.__height__ = 540
+			self.__height__ = 544
 		if self.__sensor_mode__ == 6:
 			self.__framerate__ = 40
 			self.__width__ = 960
-			self.__height__ = 540
+			self.__height__ = 544
 		if self.__sensor_mode__ == 7:
 			self.__framerate__ = 40
 			self.__width__ = 640
@@ -1721,7 +1739,7 @@ class CameraServer(Server):
 			self.__rtsp_queue__.link(self.__rtsp_sink__)
 			self.__rtsp_queue__.set_state(Gst.State.PLAYING)
 			self.__rtsp_sink__.set_state(Gst.State.PLAYING)
-		# if this is stop streming request
+		# if this is stop streaming request
 		else:
 			# destroy pipeline
 			self.__rtsp_queue__.set_state(Gst.State.NULL)
@@ -1827,8 +1845,12 @@ class CameraServer(Server):
 		function_name = "'" + threading.currentThread().name + "'." +\
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": fragment_id=" + str(fragment_id))
-		result = 'v_' + str(self.__width__) + 'x' + str(self.__height__) + \
-			'_H264_{0:0{1}}.mp4'.format(fragment_id, 2)
+		if self.__format__:
+			result = 'v_' + str(self.__width__) + 'x' + str(self.__height__) + \
+				'_HYUV_{0:0{1}}.mkv'.format(fragment_id, 2)
+		else:
+			result = 'v_' + str(self.__width__) + 'x' + str(self.__height__) + \
+				'_H264_{0:0{1}}.mp4'.format(fragment_id, 2)
 		self.__fragment_id__ = fragment_id + 1
 		logging.debug(function_name + ": return " + result)
 		return result
@@ -1879,62 +1901,91 @@ class CameraServer(Server):
 			pad.remove_probe(info.id)
 			self.__file_queue__ = Gst.ElementFactory.make('queue', 'file-queue')	
 			if self.__format__:
-				self.__file_queue__.set_property('leaky', 1)
-				# self.__file_queue__.connect(
-				# 	'overrun', self.__on_overrun__)
-				self.__file_rate__ = Gst.ElementFactory.make(
-					'videorate', 'rate')
-				# estimate required throughput
-				throughput = round(self.__width__ * self.__height__ * 12 *\
-					self.__framerate__ / (8 * 1024 * 1024))
-				if throughput > self.__throughput__:
-					self.__raw_framerate__ = \
-						round(self.__throughput__ * 8 * 1024 * 1024 /
-						(self.__width__ * self.__height__ * 12))
-					if self.__raw_framerate__ <= 0:
-						self.__raw_framerate__ = 1
-				else:
-					self.__raw_framerate__ = self.__framerate__
-				logging.debug(
-					function_name + ': self.__raw__framerate__=' + 
-					str(self.__raw_framerate__))
-				self.__file_rate__.set_property(
-					'max-rate', self.__raw_framerate__)
-				self.__file_rate__.set_property('drop-only', True)
+				if self.__throughput__ > 0:
+					self.__file_queue__.set_property('leaky', 1)
+					# self.__file_queue__.connect(
+					# 	'overrun', self.__on_overrun__)
+					self.__file_rate__ = Gst.ElementFactory.make(
+						'videorate', 'rate')
+					# estimate required throughput
+					# NOTE(marcin.sielski): Magic number 3.5 is estimated
+					# compression ratio
+					throughput = round(self.__width__ * self.__height__ * 12 *\
+						self.__framerate__ / (8 * 1024 * 1024 * 3.5))
+					if throughput > self.__throughput__:
+						self.__raw_framerate__ = \
+							round(self.__throughput__ * 8 * 1024 * 1024 * 3.5 /
+							(self.__width__ * self.__height__ * 12))
+						if self.__raw_framerate__ <= 0:
+							self.__raw_framerate__ = 1
+					else:
+				 		self.__raw_framerate__ = self.__framerate__
+					logging.debug(
+				 		function_name + ': self.__raw__framerate__=' + 
+				 		str(self.__raw_framerate__))
+					self.__file_rate__.set_property(
+				 		'max-rate', self.__raw_framerate__)
+					self.__file_rate__.set_property('drop-only', True)
+				self.__file_converter__ =\
+					Gst.ElementFactory.make('videoconvert','converter')
+				self.__file_encoder__ = \
+					Gst.ElementFactory.make('avenc_huffyuv','file-encoder')
+				self.__file_muxer__ = \
+					Gst.ElementFactory.make('matroskamux','file-muxer')
 				self.__file_sink__ = Gst.ElementFactory.make(
-					'multifilesink', 'file-sink')
+					'splitmuxsink', 'file-sink')
+				self.__file_sink__.set_property(
+					'muxer', self.__file_muxer__)
+				self.__file_sink__.set_property(
+					'max-size-time', self.__max_size_time__)
+				self.__file_sink__.set_property(
+					'max-size-bytes', self.__max_size_bytes__)
+				self.__file_sink__.set_property('max-files', self.__max_files__)
+				logging.debug(
+					function_name + ": self.__fragment_id__=" +
+					str(self.__fragment_id__))
+				self.__file_sink__.set_property(
+					'start-index', self.__fragment_id__)
+				self.__file_sink__.connect(
+					'format-location', self.__on_format_location__)
 				self.__file_sink__.set_property(
 					'location', 'v_' + str(self.__width__) + 'x' + 
-					str(self.__height__) + '@' + str(self.__raw_framerate__) + 
-					'_I420_%02d.raw')
-				self.__index_changed__ = False
-				self.__file_sink__.set_property(
-					'max-file-duration', self.__max_size_time__)
-				self.__file_sink__.set_property(
-					'max-file-size', self.__max_size_bytes__)
-				self.__file_sink__.set_property('max-files', self.__max_files__)
-				if self.__max_size_time__ == 0 and self.__max_size_bytes__ == 0:
-					self.__next_file__ = 3
-				elif self.__max_size_time__ > 0 and self.__max_size_bytes__ > 0:
-					# NOTE(marcin.sielski): This is new option not avialable in 
-					# regular GStremaer builds.
-					self.__next_file__ = 6
-				elif self.__max_size_time__ > 0:
-					self.__next_file__ = 5
-				elif self.__max_size_bytes__ > 0:
-					self.__next_file__ = 4
-					logging.debug(
-						function_name + ": self.__next_file__=" + 
-						str(self.__next_file__))
-				self.__file_sink__.set_property('next-file', self.__next_file__)
-				self.__file_sink__.set_property('post-messages', True)
-				self.__file_sink__.set_property('async', True)
-				self.__file_sink__.set_property('sync', False)
-				if self.__index__ >= 10:
-					self.__index__ = 0
-				logging.debug(
-					function_name + ": self.__index__=" + str(self.__index__))
-				self.__file_sink__.set_property('index', self.__index__)
+					str(self.__height__) + 
+					'_HYUV_{0:0{1}}.mkv'.format(self.__fragment_id__, 2))
+				# self.__file_sink__ = Gst.ElementFactory.make(
+				# 	'multifilesink', 'file-sink')
+				# self.__file_sink__.set_property(
+				# 	'location', 'v_' + str(self.__width__) + 'x' + 
+				# 	str(self.__height__) + '@' + str(self.__raw_framerate__) + 
+				# 	'_I420_%02d.raw')
+				# self.__index_changed__ = False
+				# self.__file_sink__.set_property(
+				# 	'max-file-duration', self.__max_size_time__)
+				# self.__file_sink__.set_property(
+				# 	'max-file-size', self.__max_size_bytes__)
+				# self.__file_sink__.set_property('max-files', self.__max_files__)
+				# if self.__max_size_time__ == 0 and self.__max_size_bytes__ == 0:
+				# 	self.__next_file__ = 3
+				# elif self.__max_size_time__ > 0 and self.__max_size_bytes__ > 0:
+				# 	# NOTE(marcin.sielski): This is new option not available in 
+				# 	# regular GStreamer builds.
+				# 	self.__next_file__ = 6
+				# elif self.__max_size_time__ > 0:
+				# 	self.__next_file__ = 5
+				# elif self.__max_size_bytes__ > 0:
+				# 	self.__next_file__ = 4
+				# 	logging.debug(
+				# 		function_name + ": self.__next_file__=" + 
+				# 		str(self.__next_file__))
+				# self.__file_sink__.set_property('next-file', self.__next_file__)
+				# self.__file_sink__.set_property('post-messages', True)
+				# self.__file_sink__.set_property('async', True)
+				# self.__file_sink__.set_property('sync', False)
+				# if self.__index__ >= 10:
+				# 	self.__index__ = 0
+				# logging.debug(
+				# 	function_name + ": self.__index__=" + str(self.__index__))
+				# self.__file_sink__.set_property('index', self.__index__)
 			else:
 				self.__file_sink__ = Gst.ElementFactory.make(
 					'splitmuxsink', 'file-sink')
@@ -1951,25 +2002,35 @@ class CameraServer(Server):
 				self.__file_sink__.connect(
 					'format-location', self.__on_format_location__)
 				self.__file_sink__.set_property(
-					'location', 'v_' + str(self.__width__) + 'x' + \
-						str(self.__height__) + \
-							'_H264_{0:0{1}}.mp4'.format(self.__fragment_id__, 2))
+					'location', 'v_' + str(self.__width__) + 'x' + 
+					str(self.__height__) + 
+					'_H264_{0:0{1}}.mp4'.format(self.__fragment_id__, 2))
 			self.__pipeline__.add(self.__file_queue__)
 			self.__pipeline__.add(self.__file_sink__)
 			if self.__format__:
-				self.__pipeline__.add(self.__file_rate__)
+				if self.__throughput__ > 0:
+					self.__pipeline__.add(self.__file_rate__)
+				self.__pipeline__.add(self.__file_converter__)
+				self.__pipeline__.add(self.__file_encoder__)
 				self.__raw_tee__.link(self.__file_queue__)
-				self.__file_queue__.link(self.__file_rate__)
-				#self.__file_queue__.link(self.__file_sink__)
-				self.__file_rate__.link(self.__file_sink__)
-				self.__file_rate__.set_state(Gst.State.PLAYING)
+				if self.__throughput__ > 0:
+					self.__file_queue__.link(self.__file_rate__)
+					self.__file_rate__.link(self.__file_converter__)
+				else:
+					self.__file_queue__.link(self.__file_converter__)
+				self.__file_converter__.link(self.__file_encoder__)
+				self.__file_encoder__.link(self.__file_sink__)
+				if self.__throughput__ > 0:
+					self.__file_rate__.set_state(Gst.State.PLAYING)
+				self.__file_converter__.set_state(Gst.State.PLAYING)
+				self.__file_encoder__.set_state(Gst.State.PLAYING)
 			else:
 				self.__h264_tee__.link(self.__file_queue__)
 				self.__file_queue__.link(self.__file_sink__)
 			self.__file_queue__.set_state(Gst.State.PLAYING)
 			self.__file_sink__.set_state(Gst.State.PLAYING)
 
-		logging.debug(function_name + ": Gst.PadProbeReturn.DROP")
+		logging.debug(function_name + ": return Gst.PadProbeReturn.DROP")
 		return Gst.PadProbeReturn.DROP
 
 
@@ -2024,11 +2085,10 @@ class CameraServer(Server):
 				Gst.PadProbeType.BLOCK_DOWNSTREAM,
 				self.__enable_disable_record__)
 		else:
-			srcpad = None
-			if self.__format__:
-				self.__index__ = self.__index__ + 1
-				if self.__index__ >= 10:
-					self.__index__ = 0
+			# if self.__format__:
+			# 	self.__index__ = self.__index__ + 1
+			# 	if self.__index__ >= 10:
+			# 		self.__index__ = 0
 			srcpad = self.__file_queue__.get_static_pad("src")
 			self.probe_id = srcpad.add_probe(
 				Gst.PadProbeType.BLOCK | Gst.PadProbeType.BUFFER, 
@@ -2071,9 +2131,9 @@ class CameraServer(Server):
 				return
 		rtsp = self.__rtsp__
 		record = self.__record__
-		# if server is streming
+		# if server is streaming
 		if self.__rtsp__:
-			# stop streming
+			# stop streaming
 			logging.debug(
 				function_name + 
 				": self.__restart_lock__.acquire(blocking=True)")
@@ -2339,7 +2399,13 @@ class CameraService:
 	"""
 
 	def __init__(self):
+
+		"""
+		Initialize Camera Service
+		"""
+
 		signal.signal(signal.SIGTERM, self.stop)
+		self.__running__ = False
 
 
 	def get_parser(self):
@@ -2356,16 +2422,16 @@ class CameraService:
 		parser.add_argument(
 			'-d', '--debug', type=str, nargs='?', const='DEBUG', default='INFO',
 			help="enable debug level (DEBUG by default): NOTSET, DEBUG, INFO, "
-			"WARNING, ERROR, CRITITCAL")
+			"WARNING, ERROR, CRITICAL")
 		parser.add_argument(
 			'-c', '--camera_timeout', type=int, nargs='?', const=7500,
-			default=0, help="set camera timoout (Infinite by default)")
+			default=0, help="set camera timeout (Infinite by default)")
 		# NOTE(marcin.sielski): Magic number 2 MiB/s depends on underlying
 		# hardware capabilities and was estimated experimentally for
 		# SanDisk Extreme 64 GB.
 		parser.add_argument(
 			'-t', '--throughput', type=int, nargs='?', const=2, default=2,
-			help="set camera timoout (3 MiB by default)")
+			help="set camera timeout (2 MiB by default)")
 		return parser
 
 
@@ -2384,6 +2450,7 @@ class CameraService:
 		self.__servers__ = Servers(
 			[HTTPSServer(camera_server), camera_server, RTSPServer()])
 		self.__servers__.start()
+		self.__running__ = True
 		logging.debug(function_name + ": exit")
 
 
@@ -2396,7 +2463,9 @@ class CameraService:
 		function_name = "'" + threading.currentThread().name + "'." +\
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
-		self.__servers__.stop()
+		if self.__running__:
+			self.__running__ = False
+			self.__servers__.stop()
 		logging.info(name(self) + " stopped")		
 		logging.debug(function_name + ": exit")
 	
