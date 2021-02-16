@@ -46,7 +46,7 @@ import logging
 import inspect
 from argparse import ArgumentParser, ArgumentTypeError
 import signal
-
+from os import walk
 
 def name(obj):
 
@@ -410,6 +410,9 @@ class HTTPSServer(WSGIServer):
 				int(req.params['max_size_time']))
 		if 'persistent' in req.params:
 			self.__camera_server__.set_persistent(int(req.params['persistent']))
+		if 'media' in req.params:
+			resp.body = (self.__camera_server__.get_media())
+			return
 
 		resp.body = (self.__camera_server__.get_parameters())
 
@@ -614,6 +617,23 @@ class CameraServer(Server):
 			sort_keys=True)
 
 
+	def get_media(self):
+
+		"""
+		Obtain names of media files from the media folder
+
+		Returns:
+			json: list of media files from the media folder
+		"""
+
+		_, _, filenames = next(walk('.'))
+		media = []
+		for filename in filenames:
+			if filename.endswith(".mkv") or filename.endswith(".mp4"):
+				media.append(filename)
+		return json.dumps(media, sort_keys=True)
+
+
 	def init(self):
 
 		"""
@@ -773,7 +793,8 @@ class CameraServer(Server):
 
 	def __on_image_effect__(self):
 
-		"""[summary]
+		"""
+		Callback function executed on change media effect to hatch
 		"""
 
 		function_name = "'" + threading.currentThread().name + "'." +\

@@ -837,6 +837,38 @@ function change(parameter) {
 			let height = value.split('x')[1];
 			url = url.concat('/?width=' + width + '&height=' + height)
 			break
+		case 'media':
+			url = url.concat('/?' + parameter)
+			fetch(url).then(response => response.json())
+				.then(data => {
+				Janus.log(data)
+				let carouselHtml = ''
+				let folderHtml = ''
+				let active = 'active'
+				for (let i = 0; i < data.length; i++) {
+					if (data[i].endsWith('.mp4')) {
+						carouselHtml += '\
+						<div class="carousel-item '+active+'">\
+							<video class="d-block" style="width: 80%; \
+							transform: translateX(12.5%)" src="media/'+data[i]+
+							'" alt="'+data[i]+'" controls> \
+								<source src="media/'+data[i]+
+								'" type="video/mp4"> \
+							</video> \
+						</div>'	
+						active = ''
+					} else {
+						folderHtml += '<button onclick="window.open(\'media/'+ 
+						data[i] + 
+						'\')" class="btn btn-dark btn-sm btn-outline-light" \
+						role="button">'+data[i]+'</button>'
+					}
+				}
+				$('#carousel').html(carouselHtml)
+				$('#folder').html(folderHtml)
+			})
+		.catch(error => Janus.error(error));
+			return
 		case 'restart':
 			url = url.concat('/?' + parameter)
 			break

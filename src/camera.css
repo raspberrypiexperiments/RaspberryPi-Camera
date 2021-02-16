@@ -39,3 +39,9 @@ SOFTWARE.
 {
     padding: .5rem .5rem
 }
+
+.carousel-control-prev, .carousel-control-next
+{
+    width: 5%
+}
+

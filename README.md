@@ -21,6 +21,7 @@ This repository depends on:
 
 * Google Chrome Desktop,
 * Google Chrome Mobile,
+* Mozilla Firefox Desktop,
 * Mozilla Firefox Desktop.
 
 ## Known supported Raspberry Pi

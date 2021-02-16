@@ -64,7 +64,7 @@ install: dependencies
 	sudo systemctl start camera.service
 	sleep 3
 	sudo systemctl status camera.service
-	sudo ln -s /home/pi/media /opt/camera/share/camera/media
+	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 
 uninstall:
 	sudo systemctl daemon-reload
@@ -112,6 +112,7 @@ redeploy:
 	sudo systemctl start camera.service
 	sleep 3
 	sudo systemctl status camera.service
+	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 
 swap:
 	sudo bash -c "echo 3 >'/proc/sys/vm/drop_caches' && sudo dphys-swapfile swapoff && sudo dphys-swapfile swapon && printf '\n%s\n' 'Ram-cache and Swap Cleared'"
