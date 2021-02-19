@@ -670,6 +670,7 @@ class CameraServer(Server):
 		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
 
 		self.__parser__ = Gst.ElementFactory.make('h264parse', 'parser')
+		self.__parser__.set_property('config-interval', -1)
 		GstBase.BaseParse.set_infer_ts(self.__parser__, True)
 		GstBase.BaseParse.set_pts_interpolation(self.__parser__, True)
 
