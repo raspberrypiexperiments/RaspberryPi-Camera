@@ -32,7 +32,6 @@ gi.require_version('Gst', '1.0')
 gi.require_version('GstBase', '1.0')
 gi.require_version('GstRtspServer', '1.0')
 from gi.repository import Gst, GstBase, GstRtspServer, GLib
-from gpiozero import Button
 from signal import pause
 from subprocess import call
 from os import system
@@ -659,6 +658,8 @@ class CameraServer(Server):
 		self.__encoder__ = Gst.ElementFactory.make('omxh264enc', 'encoder')
 		self.__encoder__.set_property('control-rate', 2)
 		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
+		self.__encoder__.set_property(
+			'interval-intraframes', int(self.__framerate__/5))
 
 		self.__encoder_caps__ = Gst.Caps.new_empty_simple('video/x-h264')
 		self.__encoder_caps__.set_value('profile', 'baseline')
@@ -670,9 +671,6 @@ class CameraServer(Server):
 		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
 
 		self.__parser__ = Gst.ElementFactory.make('h264parse', 'parser')
-		self.__parser__.set_property('config-interval', -1)
-		GstBase.BaseParse.set_infer_ts(self.__parser__, True)
-		GstBase.BaseParse.set_pts_interpolation(self.__parser__, True)
 
 		self.__h264_tee__ = Gst.ElementFactory.make('tee', 'h264-tee')
 
@@ -680,7 +678,7 @@ class CameraServer(Server):
 			'queue', 'payloader-queue')
 
 		self.__payloader__ = Gst.ElementFactory.make('rtph264pay', 'payloader')
-		self.__payloader__.set_property('config-interval', 1)
+		self.__payloader__.set_property('config-interval', -1)
 
 		self.__rtsp_tee__ = Gst.ElementFactory.make('tee', 'rtsp-tee')
 
