@@ -19,7 +19,7 @@ This repository depends on:
 
 ## Architecture
 
-![CamBerry Architecture](doc/CamBerry.png)
+![CamBerry Architecture](doc/CamBerry_Camera.png)
 
 ## Screenshoot
 
