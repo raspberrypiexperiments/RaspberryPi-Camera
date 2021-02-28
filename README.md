@@ -17,6 +17,14 @@ This repository depends on:
 * [RaspberryPi-GStreamer-1.0](https://github.com/raspberrypiexperiments/RaspberryPi-GStreamer-1.0).
 
 
+## Architecture
+
+![CamBerry Architecture](doc/CamBerry.svg)
+
+## Screenshoot
+
+![CamBerry Web Client](doc/Screenshot_20210220-091910.png)
+
 ## Known supported Web Browsers
 
 * Google Chrome Desktop,
