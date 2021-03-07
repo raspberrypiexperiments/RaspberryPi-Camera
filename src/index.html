@@ -74,9 +74,12 @@ SOFTWARE.
 							</select>			
 							<button type="button" class="btn btn-lg btn-dark" disabled>Bitrate</button>
 							<select class="form-select form-control-lg bg-dark text-light" aria-label="bitrate" onchange="change('bitrate')" id="bitrate">
+								<option value="8000000">8000000</option>
+								<option value="7000000">7000000</option>
+								<option value="6000000">6000000</option>
 								<option value="5000000">5000000</option>
-								<option value="4000000" selected>4000000</option>
-								<option value="3000000">3000000</option>
+								<option value="4000000">4000000</option>
+								<option value="3000000" selected>3000000</option>
 								<option value="2000000">2000000</option>
 								<option value="1000000">1000000</option>
 							</select>
@@ -506,26 +509,17 @@ SOFTWARE.
 		</div>
 		<div class="modal fade" id="mediaModal" tabindex="-1" role="dialog" aria-labelledby="media" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-scrollable" role="document">
-				<div class="modal-content text-white bg-dark">
+				<div class="modal-content">
 					<div class="modal-header">
-						  <h5 class="modal-title" id="exampleModalLabel">Media</h5>
-						  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<h5 class="modal-title" id="exampleModalLabel">
+							Media
+							<span class="badge badge-light hide" id="space"></span>
+						</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 							<span aria-hidden="true">&times;</span>
-						  </button>
+						</button>
 					</div>
-					<div class="modal-body">
-						<div id="carouselMediaControls" class="carousel slide" data-interval="false">
-							<div id="carousel" class="carousel-inner"></div>
-							<a class="carousel-control-prev" href="#carouselMediaControls" role="button" data-slide="prev">
-							  	<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-							  	<span class="sr-only">Previous</span>
-							</a>
-							<a class="carousel-control-next" href="#carouselMediaControls" role="button" data-slide="next">
-							  	<span class="carousel-control-next-icon" aria-hidden="true"></span>
-							  	<span class="sr-only">Next</span>
-							</a>
-						</div>
-					</div>
+					<div id="folderControls"></div>
 					<div id="folder" class="modal-body" style="border-top: 1px solid #dee2e6;"></div>
 				</div>
 			</div>

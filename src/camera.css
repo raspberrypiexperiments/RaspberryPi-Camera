@@ -25,9 +25,9 @@ SOFTWARE.
 {
     top: 0px;
     left: 0px;
-    position:absolute;
-    height:100%;
-    width:100%;
+    position: absolute;
+    height: 100%;
+    width: 100%;
 }
 
 .hide
@@ -45,3 +45,13 @@ SOFTWARE.
     width: 5%
 }
 
+.close
+{
+    color: #FFF;
+}
+
+.modal-content
+{
+    color: #FFF;
+    background-color: #343a40;
+}

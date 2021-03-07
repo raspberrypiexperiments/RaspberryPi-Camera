@@ -66,6 +66,10 @@ SOFTWARE.
 // the whole session.
 //
 'use strict';
+/* global Janus */
+/* global $ */
+/* global bootbox */
+/* global fetch */
 var server = null;
 if(window.location.protocol === 'http:')
 	server = "http://" + window.location.hostname + ":8088/janus";
@@ -84,10 +88,10 @@ var selectedStream = null;
 
 var zoom = 0;
 
-var sensor_mode = ['0','5','6','1','7']
+var sensor_mode = ['0','5','6','1','7'];
 
 $(document).ready(function() {
-	selectedStream=314
+	selectedStream = 314;
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
@@ -97,7 +101,15 @@ $(document).ready(function() {
 		$(this).attr('disabled', true).unbind('click');
 		// Make sure the browser supports WebRTC
 		if(!Janus.isWebrtcSupported()) {
-			bootbox.alert("No WebRTC support... ");
+			bootbox.alert({
+				title: "No WebRTC support... ",
+				buttons: {
+					ok: {
+						label: "OK",
+						className: 'btn btn-lg btn-dark'
+					}
+				}
+			});
 			return;
 		}
 		// Create session
@@ -119,13 +131,22 @@ $(document).ready(function() {
 								// Setup streaming session
 								$('#update-streams').click(updateStreamsList);
 								updateStreamsList();
-								startStream()
+								startStream();
 							},
 							error: function(error) {
 								Janus.error(
 									"  -- Error attaching plugin... ", error);
-								bootbox.alert(
-									"Error attaching plugin... " + error);
+								bootbox.alert({
+									title: "Error",
+									message: 
+									"Error attaching plugin... " + error,
+									buttons: {
+										ok: {
+											label: "OK",
+											className: 'btn btn-lg btn-dark'
+										}
+									}
+								});
 							},
 							iceState: function(state) {
 								Janus.log("ICE state changed to " + state);
@@ -156,7 +177,16 @@ $(document).ready(function() {
 											stopStream();
 									} 
 								} else if(msg["error"]) {
-									bootbox.alert(msg["error"]);
+									bootbox.alert({
+										title: "Error",
+										message: msg["error"],
+										buttons: {
+											ok: {
+												label: "OK",
+												className: 'btn btn-lg btn-dark'
+											}
+										}
+									});
 									stopStream();
 									return;
 								}
@@ -225,14 +255,16 @@ $(document).ready(function() {
 									$("#remotevideo")
 									.bind("playing", function () {
 										fetch("https://" + 
-										window.location.hostname + ":8888")
+										window.location.hostname + 
+										":8888/?time=" + 
+										Math.round(Date.now()/1000))
 											.then(response => response.json())
 											.then(data => {
-												Janus.log(data)
-												display(data)													
+												Janus.log(data);
+												display(data);												
 											})
 											.catch(
-												error => console.error(error))
+												error => console.error(error));
 										var videoTracks = 
 										stream.getVideoTracks();
 										if(!videoTracks || 
@@ -272,24 +304,25 @@ $(document).ready(function() {
 											'<i class="fas fa-video-slash">' +
 											'</i>' +
 											'</div>');
-										$('#model').addClass('hide').hide()
-										$('#curres').addClass('hide').hide()
+										$('#model').addClass('hide').hide();
+										$('#curres').addClass('hide').hide();
 										$('#zoom_button').addClass('hide')
-										.hide()
+										.hide();
 										$('#zoom_in_button').addClass('hide')
-										.hide()
+										.hide();
 										$('#zoom_out_button').addClass('hide')
-										.hide()
+										.hide();
 										$('#sensor_mode_button')
-										.addClass('hide').hide()
+										.addClass('hide').hide();
 										$('#sensor_mode').addClass('hide')
-										.hide()
-										$('#framerate').addClass('hide').hide()
-										$('#resolution').addClass('hide').hide()
+										.hide();
+										$('#framerate').addClass('hide').hide();
+										$('#resolution').addClass('hide')
+										.hide();
 										$('#framerate_button').addClass('hide')
-										.hide()
+										.hide();
 										$('#resolution_button').addClass('hide')
-										.hide()
+										.hide();
 									}
 								} else {
 									$('#no-video-container').remove();
@@ -339,21 +372,32 @@ $(document).ready(function() {
 							},
 							slowLink: function(uplink, lost) {
 								Janus.log(
-									" ::: Got a slowLink notification :::")
+									" ::: Got a slowLink notification :::");
 								if (lost > 500 && 
-									parseInt($('#bitrate').val()) > 1000000) {
+									parseInt($('#bitrate').val(), 10) > 1000000)
+								{
 									$('#bitrate').val(String(
-										parseInt($('#bitrate').val())) -
-										1000000)
-									change('bitrate')
+										parseInt($('#bitrate').val()), 10) -
+										1000000);
+									change('bitrate');
 								}
 							}
 						});
 				},
 				error: function(error) {
 					Janus.error(error);
-					bootbox.alert(error, function() {
-						window.location.reload();
+					bootbox.alert({
+						title: "Error",
+						message: error,
+						buttons: {
+							ok: {
+								label: "OK",
+								className: 'btn btn-lg btn-dark'
+							}
+						},
+						callback: function() {
+							window.location.reload();
+						}
 					});
 				},
 				destroyed: function() {
@@ -369,7 +413,16 @@ function updateStreamsList() {
 	Janus.debug("Sending message:", body);
 	streaming.send({ message: body, success: function(result) {
 		if(!result) {
-			bootbox.alert("Got no response to our query for available streams");
+			bootbox.alert({
+				title: "Error",
+				message: "Got no response to our query for available streams",
+				buttons: {
+					ok: {
+						label: "OK",
+						className: 'btn btn-lg btn-dark'
+					}
+				}
+			});
 			return;
 		}
 		if(result["list"]) {
@@ -393,7 +446,7 @@ function getStreamInfo() {
 	// Send a request for more info on the mountpoint we subscribed to
 	var body = { 
 		request: "info", 
-		id: parseInt(selectedStream) || selectedStream 
+		id: parseInt(selectedStream, 10) || selectedStream 
 	};
 	streaming.send({ message: body, success: function(result) {
 		if(result && result.info && result.info.metadata) {
@@ -406,12 +459,21 @@ function getStreamInfo() {
 function startStream() {
 	Janus.log("Selected video id #" + selectedStream);
 	if(!selectedStream) {
-		bootbox.alert("Select a stream from the list");
+		bootbox.alert({
+			title: "Error",
+			message: "Select a stream from the list",
+			buttons: {
+				ok: {
+					label: "OK",
+					className: 'btn btn-lg btn-dark'
+				}
+			}
+		});
 		return;
 	}
 	var body = { 
 		request: "watch", 
-		id: parseInt(selectedStream) || selectedStream
+		id: parseInt(selectedStream, 10) || selectedStream
 	};
 	streaming.send({ message: body });
 	// No remote video yet
@@ -434,12 +496,12 @@ function stopStream() {
 }
 
 function display(data) {
-	$('#model').removeClass('hide').text(data.model).show()
+	$('#model').removeClass('hide').text(data.model).show();
 
 	// Quality
 
-	$('#resolution').val(data.width+'x'+data.height)
-	switch(parseInt(data.sensor_mode)) {
+	$('#resolution').val(data.width+'x'+data.height);
+	switch(parseInt(data.sensor_mode, 10)) {
 		case 0: // auto
 			$('#framerate').html(' \
 				<option value="60">60</option> \
@@ -454,14 +516,14 @@ function display(data) {
 				<option value="15">15</option> \
 				<option value="10">10</option> \
 				<option value="5">&nbsp;&nbsp;5</option> \
-			')
-			$('#hd').removeClass('hide').show() // 1280x720 16:9
-			$('#xga').removeClass('hide').show() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x544 16:9
-			$('#svga').removeClass('hide').show() // 800x608 4:3
-			$('#wvga').removeClass('hide').show() // 800x448 16:9
-			$('#vga').removeClass('hide').show() // 640x480 4:3					
-			break
+			');
+			$('#hd').removeClass('hide').show(); // 1280x720 16:9
+			$('#xga').removeClass('hide').show(); // 1024x768 4:3
+			$('#qhd').removeClass('hide').show(); // 960x544 16:9
+			$('#svga').removeClass('hide').show(); // 800x608 4:3
+			$('#wvga').removeClass('hide').show(); // 800x448 16:9
+			$('#vga').removeClass('hide').show(); // 640x480 4:3					
+			break;
 		case 1: // 1920x1080 16:9 0.1-30fps partial
 			$('#framerate').html(' \
 				<option value="30">30</option> \
@@ -494,14 +556,14 @@ function display(data) {
 				<option value="3">&nbsp;&nbsp;3</option> \
 				<option value="2">&nbsp;&nbsp;2</option> \
 				<option value="1">&nbsp;&nbsp;1</option> \
-			')
-			$('#hd').removeClass('hide').show() // 1280x720 16:9
-			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x544 16:9
-			$('#svga').addClass('hide').hide() // 800x608 4:3
-			$('#wvga').removeClass('hide').show() // 800x448 16:9
-			$('#vga').addClass('hide').hide() // 640x480 4:3
-			break
+			');
+			$('#hd').removeClass('hide').show(); // 1280x720 16:9
+			$('#xga').addClass('hide').hide(); // 1024x768 4:3
+			$('#qhd').removeClass('hide').show(); // 960x544 16:9
+			$('#svga').addClass('hide').hide(); // 800x608 4:3
+			$('#wvga').removeClass('hide').show(); // 800x448 16:9
+			$('#vga').addClass('hide').hide(); // 640x480 4:3
+			break;
 		case 2: // 3280x2464 4:3 0.1-15fps full
 		case 3: // 3280x2464 4:3 0.1-15fps full
 			$('#framerate').html(' \
@@ -520,14 +582,14 @@ function display(data) {
 				<option value="3">&nbsp;&nbsp;3</option> \
 				<option value="2">&nbsp;&nbsp;2</option> \
 				<option value="1">&nbsp;&nbsp;1</option> \
-			')
-			$('#hd').addClass('hide').hide() // 1280x720 16:9
-			$('#xga').removeClass('hide').show() // 1024x768 4:3
-			$('#qhd').addClass('hide').hide() // 960x544 16:9
-			$('#svga').removeClass('hide').show() // 800x608 4:3
-			$('#wvga').addClass('hide').hide() // 800x448 16:9
-			$('#vga').removeClass('hide').show() // 640x480 4:3					
-			break
+			');
+			$('#hd').addClass('hide').hide(); // 1280x720 16:9
+			$('#xga').removeClass('hide').show(); // 1024x768 4:3
+			$('#qhd').addClass('hide').hide(); // 960x544 16:9
+			$('#svga').removeClass('hide').show(); // 800x608 4:3
+			$('#wvga').addClass('hide').hide(); // 800x448 16:9
+			$('#vga').removeClass('hide').show(); // 640x480 4:3					
+			break;
 		case 4: // 1640x1232 4:3 0.1-40fps full
 			$('#framerate').html(' \
 				<option value="40">40</option> \
@@ -570,14 +632,14 @@ function display(data) {
 				<option value="3">&nbsp;&nbsp;3</option> \
 				<option value="2">&nbsp;&nbsp;2</option> \
 				<option value="1">&nbsp;&nbsp;1</option> \
-			')
-			$('#hd').addClass('hide').hide() // 1280x720 16:9
-			$('#xga').removeClass('hide').show() // 1024x768 4:3
-			$('#qhd').addClass('hide').hide() // 960x544 16:9
-			$('#svga').removeClass('hide').show() // 800x608 4:3
-			$('#wvga').addClass('hide').hide() // 800x448 16:9
-			$('#vga').removeClass('hide').show() // 640x480 4:3
-			break
+			');
+			$('#hd').addClass('hide').hide(); // 1280x720 16:9
+			$('#xga').removeClass('hide').show(); // 1024x768 4:3
+			$('#qhd').addClass('hide').hide(); // 960x544 16:9
+			$('#svga').removeClass('hide').show(); // 800x608 4:3
+			$('#wvga').addClass('hide').hide(); // 800x448 16:9
+			$('#vga').removeClass('hide').show(); // 640x480 4:3
+			break;
 		case 5: // 1640x922 16:9 0.1-40fps partial
 			$('#framerate').html(' \
 				<option value="40">40</option> \
@@ -620,14 +682,14 @@ function display(data) {
 				<option value="3">&nbsp;&nbsp;3</option> \
 				<option value="2">&nbsp;&nbsp;2</option> \
 				<option value="1">&nbsp;&nbsp;1</option> \
-			')
-			$('#hd').removeClass('hide').show() // 1280x720 16:9
-			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x544 16:9
-			$('#svga').addClass('hide').hide() // 800x608 4:3
-			$('#wvga').removeClass('hide').show() // 800x448 16:9
-			$('#vga').addClass('hide').hide() // 640x480 4:3
-			break
+			');
+			$('#hd').removeClass('hide').show(); // 1280x720 16:9
+			$('#xga').addClass('hide').hide(); // 1024x768 4:3
+			$('#qhd').removeClass('hide').show(); // 960x544 16:9
+			$('#svga').addClass('hide').hide(); // 800x608 4:3
+			$('#wvga').removeClass('hide').show(); // 800x448 16:9
+			$('#vga').addClass('hide').hide(); // 640x480 4:3
+			break;
 		case 6: // 1280x720 16:9 40-90fps partial
 			if ($('#resolution').val() == '1280x720') {
 				$('#framerate').html(' \
@@ -636,7 +698,7 @@ function display(data) {
 					<option value="50">50</option> \
 					<option value="45">45</option> \
 					<option value="40">40</option> \
-				')
+				');
 			} else {
 				$('#framerate').html(' \
 					<option value="90">90</option> \
@@ -650,15 +712,15 @@ function display(data) {
 					<option value="50">50</option> \
 					<option value="45">45</option> \
 					<option value="40">40</option> \
-				')
+				');
 			}
-			$('#hd').removeClass('hide').show() // 1280x720 16:9
-			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').removeClass('hide').show() // 960x544 16:9
-			$('#svga').addClass('hide').hide() // 800x608 4:3
-			$('#wvga').removeClass('hide').show() // 800x448 16:9
-			$('#vga').addClass('hide').hide() // 640x480 4:3
-			break
+			$('#hd').removeClass('hide').show(); // 1280x720 16:9
+			$('#xga').addClass('hide').hide(); // 1024x768 4:3
+			$('#qhd').removeClass('hide').show(); // 960x544 16:9
+			$('#svga').addClass('hide').hide(); // 800x608 4:3
+			$('#wvga').removeClass('hide').show(); // 800x448 16:9
+			$('#vga').addClass('hide').hide(); // 640x480 4:3
+			break;
 		case 7: // 640x480 4:3 40-200fps partial
 			$('#framerate').html(' \
 				<option value="200">200</option> \
@@ -678,200 +740,239 @@ function display(data) {
 				<option value="60">&nbsp;&nbsp;60</option> \
 				<option value="50">&nbsp;&nbsp;50</option> \
 				<option value="40">&nbsp;&nbsp;40</option> \
-			')
-			$('#hd').addClass('hide').hide() // 1280x720 16:9
-			$('#xga').addClass('hide').hide() // 1024x768 4:3
-			$('#qhd').addClass('hide').hide() // 960x544 16:9
-			$('#svga').addClass('hide').hide() // 800x608 4:3
-			$('#wvga').addClass('hide').hide() // 800x448 16:9
-			$('#vga').removeClass('hide').show() // 640x480 4:3
-			break
+			');
+			$('#hd').addClass('hide').hide(); // 1280x720 16:9
+			$('#xga').addClass('hide').hide(); // 1024x768 4:3
+			$('#qhd').addClass('hide').hide(); // 960x544 16:9
+			$('#svga').addClass('hide').hide(); // 800x608 4:3
+			$('#wvga').addClass('hide').hide(); // 800x448 16:9
+			$('#vga').removeClass('hide').show(); // 640x480 4:3
+			break;
 	}
-	$('#framerate').val(data.framerate)
-	$('#framerate_button').removeClass('hide').show()
-	$('#framerate').removeClass('hide').show()
-	$('#resolution_button').removeClass('hide').show()
-	$('#resolution').removeClass('hide').show()
+	$('#framerate').val(data.framerate);
+	$('#framerate_button').removeClass('hide').show();
+	$('#framerate').removeClass('hide').show();
+	$('#resolution_button').removeClass('hide').show();
+	$('#resolution').removeClass('hide').show();
 
-	$('#bitrate').val(data.bitrate)
-	$('#sensor_mode').val(data.sensor_mode)
+	$('#bitrate').val(data.bitrate);
+	$('#sensor_mode').val(data.sensor_mode);
 	if (data.sensor_mode == '0' || data.sensor_mode == '2' ||
 		data.sensor_mode == '3' || data.sensor_mode == '4') {
-		zoom = 0
+		zoom = 0;
 	}
 	if (data.sensor_mode == '1') {
-		zoom = 3
+		zoom = 3;
 	}
 	if (data.sensor_mode == '5') {
-		zoom = 1
+		zoom = 1;
 	}
 	if (data.sensor_mode == '6') {
-		zoom = 2
+		zoom = 2;
 	}
 	if (data.sensor_mode == '7') {
-		zoom = 4
+		zoom = 4;
 	}
-	$('#zoom_button').removeClass('hide').show()
-	$('#zoom_in_button').removeClass('hide').show()
+	$('#zoom_button').removeClass('hide').show();
+	$('#zoom_in_button').removeClass('hide').show();
 	if (zoom == sensor_mode.length - 1) {
-		$('#zoom_in_button').attr('disabled', true)
+		$('#zoom_in_button').attr('disabled', true);
 	} else if (zoom >= 0) {
-		$('#zoom_in_button').attr('disabled', false)
+		$('#zoom_in_button').attr('disabled', false);
 	}
-	$('#zoom_out_button').removeClass('hide').show()
+	$('#zoom_out_button').removeClass('hide').show();
 	if (zoom == 0) {
-		$('#zoom_out_button').attr('disabled', true)
+		$('#zoom_out_button').attr('disabled', true);
 	} else if (zoom <= sensor_mode.length - 1) {
-		$('#zoom_out_button').attr('disabled', false)
+		$('#zoom_out_button').attr('disabled', false);
 	}
-	$('#sensor_mode_button').removeClass('hide').show()
-	$('#sensor_mode').removeClass('hide').show()
+	$('#sensor_mode_button').removeClass('hide').show();
+	$('#sensor_mode').removeClass('hide').show();
 	if (data.model == 'ov5647') {
-		$('#sensor_mode_0').text("auto")
-		$('#sensor_mode_1').text("1920x1080 16:9   0.1-30fps partial")
-		$('#sensor_mode_2').text("2592x1944  4:3   0.1-15fps full")
-		$('#sensor_mode_3').text("2592x1944  4:3 0.1666-1fps full")
-		$('#sensor_mode_4').text(" 1296x972  4:3     1-42fps full")
-		$('#sensor_mode_5').text(" 1296x730 16:9     1-49fps full")
-		$('#sensor_mode_6').text("  640x480  4:3  42.1-60fps full")
-		$('#sensor_mode_7').text("  640x480  4:3  60.1-90fps full")														
+		$('#sensor_mode_0').text("auto");
+		$('#sensor_mode_1').text("1920x1080 16:9   0.1-30fps partial");
+		$('#sensor_mode_2').text("2592x1944  4:3   0.1-15fps full");
+		$('#sensor_mode_3').text("2592x1944  4:3 0.1666-1fps full");
+		$('#sensor_mode_4').text(" 1296x972  4:3     1-42fps full");
+		$('#sensor_mode_5').text(" 1296x730 16:9     1-49fps full");
+		$('#sensor_mode_6').text("  640x480  4:3  42.1-60fps full");
+		$('#sensor_mode_7').text("  640x480  4:3  60.1-90fps full");													
 	}
 	if (data.model == 'imx219') {
-		$('#sensor_mode_0').text("auto")
-		$('#sensor_mode_1').text("1920x1080 16:9 0.1-30fps partial")
-		$('#sensor_mode_2').text("3280x2464  4:3 0.1-15fps full")
-		$('#sensor_mode_3').text("3280x2464  4:3 0.1-15fps full")
-		$('#sensor_mode_4').text("1640x1232  4:3 0.1-40fps full")
-		$('#sensor_mode_5').text(" 1640x922 16:9 0.1-40fps partial")
-		$('#sensor_mode_6').text(" 1280x720 16:9  40-90fps partial")
-		$('#sensor_mode_7').text("  640x480  4:3 40-200fps partial")
+		$('#sensor_mode_0').text("auto");
+		$('#sensor_mode_1').text("1920x1080 16:9 0.1-30fps partial");
+		$('#sensor_mode_2').text("3280x2464  4:3 0.1-15fps full");
+		$('#sensor_mode_3').text("3280x2464  4:3 0.1-15fps full");
+		$('#sensor_mode_4').text("1640x1232  4:3 0.1-40fps full");
+		$('#sensor_mode_5').text(" 1640x922 16:9 0.1-40fps partial");
+		$('#sensor_mode_6').text(" 1280x720 16:9  40-90fps partial");
+		$('#sensor_mode_7').text("  640x480  4:3 40-200fps partial");
 	}
 
 	// Effects
 
-	$('#brightness').val(data.brightness)
-	$('#contrast').val(data.contrast)
-	$('#saturation').val(data.saturation)
-	$('#sharpness').val(data.sharpness)
-	$('#drc').val(data.drc)
-	$('#image_effect').val(data.image_effect)
-	$('#awb_mode').val(data.awb_mode)
-	$('#awb_gain_blue').val(data.awb_gain_blue)
-	$('#awb_gain_red').val(data.awb_gain_red)
+	$('#brightness').val(data.brightness);
+	$('#contrast').val(data.contrast);
+	$('#saturation').val(data.saturation);
+	$('#sharpness').val(data.sharpness);
+	$('#drc').val(data.drc);
+	$('#image_effect').val(data.image_effect);
+	$('#awb_mode').val(data.awb_mode);
+	$('#awb_gain_blue').val(data.awb_gain_blue);
+	$('#awb_gain_red').val(data.awb_gain_red);
 
 	// Settings
 
-	$('#exposure_mode').val(data.exposure_mode)
-	$('#metering_mode').val(data.metering_mode)
-	$('#exposure_compensation').val(data.exposure_compensation)
-	$('#iso').val(data.iso)
-	$('#shutter_speed').val(data.shutter_speed)
-	$('#video_stabilisation').val(data.video_stabilisation)
+	$('#exposure_mode').val(data.exposure_mode);
+	$('#metering_mode').val(data.metering_mode);
+	$('#exposure_compensation').val(data.exposure_compensation);
+	$('#iso').val(data.iso);
+	$('#shutter_speed').val(data.shutter_speed);
+	$('#video_stabilisation').val(data.video_stabilisation);
 	if (data.video_stabilisation == '0') {
-		$('#video_stabilisation').removeClass('active')
+		$('#video_stabilisation').removeClass('active');
 	} else {
-		$('#video_stabilisation').addClass('active')
+		$('#video_stabilisation').addClass('active');
 	}
 	
 
 	// Orientation
 
-	$('#rotation').val(data.rotation)
-	$('#hflip').val(data.hflip)
+	$('#rotation').val(data.rotation);
+	$('#hflip').val(data.hflip);
 	if (data.hflip == '0') {
-		$('#hflip').removeClass('active')
+		$('#hflip').removeClass('active');
 	} else {
-		$('#hflip').addClass('active')
+		$('#hflip').addClass('active');
 	}
-	$('#vflip').val(data.vflip)
+	$('#vflip').val(data.vflip);
 	if (data.vflip == '0') {
-		$('#vflip').removeClass('active')
+		$('#vflip').removeClass('active');
 	} else {
-		$('#vflip').addClass('active')
+		$('#vflip').addClass('active');
 	}
-	$('#video_direction').val(data.video_direction)
+	$('#video_direction').val(data.video_direction);
 
 	// Controls
 
-	$('#stats').val(data.stats)
-	if (data.stats == '0x00000000') {
-		$('#stats').removeClass('active')
+	$('#stats').val(data.stats);
+	if (data.stats == '0x00000000' || data.stats == '0x0000040c') {
+		$('#stats').removeClass('active');
 	} else {
-		$('#stats').addClass('active')
+		$('#stats').addClass('active');
 	}
-	$('#rtsp').val(data.rtsp)
+	$('#rtsp').val(data.rtsp);
 	if (data.rtsp == '0') {
-		$('#rtsp').removeClass('active')
+		$('#rtsp').removeClass('active');
 	} else {
-		$('#rtsp').addClass('active')
+		$('#rtsp').addClass('active');
 	}
-	$('#record').val(data.record)
+	$('#record').val(data.record);
 	if (data.record == '0') {
-		$('#record').removeClass('active')
+		$('#record').removeClass('active');
 	} else {
-		$('#record').addClass('active')
+		$('#record').addClass('active');
 	}
-	$('#format').val(data.format)
+	$('#format').val(data.format);
 	if (data.format == '0') {
-		$('#format').html('<i class="fas fa-file-video"></i>')
+		$('#format').html('<i class="fas fa-file-video"></i>');
 	} else {
-		$('#format').html('<i class="fas fa-file"></i>')
+		$('#format').html('<i class="fas fa-file"></i>');
 	}
-	$('#max_files').val(data.max_files)
-	$('#max_size_bytes').val(data.max_size_bytes)
-	$('#max_size_time').val(data.max_size_time)
-	$('#persistent').val(data.persistent)
+	$('#max_files').val(data.max_files);
+	$('#max_size_bytes').val(data.max_size_bytes);
+	$('#max_size_time').val(data.max_size_time);
+	$('#persistent').val(data.persistent);
 	if (data.persistent == '0') {
-		$('#persistent').removeClass('active')
+		$('#persistent').removeClass('active');
 	} else {
-		$('#persistent').addClass('active')
+		$('#persistent').addClass('active');
 	}
 }
 
 function change(parameter) {
-	let url = 'https://' + window.location.hostname + ':8888'
+	let url = 'https://' + window.location.hostname + ':8888';
 	switch(parameter) {
 		case 'resolution':
-			let value = $('#resolution').val()
+			let value = $('#resolution').val();
 			let width = value.split('x')[0];
 			let height = value.split('x')[1];
-			url = url.concat('/?width=' + width + '&height=' + height)
-			break
+			url = url.concat('/?width=' + width + '&height=' + height);
+			break;
 		case 'media':
-			url = url.concat('/?' + parameter)
+			if ($('#record').val() == '1') {			
+				change('record');
+			}
+			url = url.concat('/?' + parameter);
 			fetch(url).then(response => response.json())
 				.then(data => {
-				Janus.log(data)
-				let carouselHtml = ''
-				let folderHtml = ''
-				let active = 'active'
-				for (let i = 0; i < data.length; i++) {
-					if (data[i].endsWith('.mp4')) {
-						carouselHtml += '\
-						<div class="carousel-item '+active+'">\
-							<video class="d-block" style="width: 80%; \
-							transform: translateX(12.5%)" src="media/'+data[i]+
-							'" alt="'+data[i]+'" controls> \
-								<source src="media/'+data[i]+
-								'" type="video/mp4"> \
-							</video> \
-						</div>'	
-						active = ''
-					} else {
-						folderHtml += '<button onclick="window.open(\'media/'+ 
-						data[i] + 
-						'\')" class="btn btn-dark btn-sm btn-outline-light" \
-						role="button">'+data[i]+'</button>'
+					Janus.log(data);
+					$('#space').removeClass('hide').text(data[0] + ' GiB');
+					let disabled = '';
+					if (data.length == 1) {
+						disabled = 'disabled';
 					}
+					$('#folderControls').html(
+						'<button type="button" class="btn btn-lg btn-dark" \
+						disabled>Remove All</button><button type="button" \
+						class="btn btn-lg btn-dark" aria-label="remove" \
+						onclick="change(\'remove\')" id="remove" '+ disabled +
+						'><i class="fas fa-trash-alt"></i></button>');
+					let folderHtml = '';
+					for (let i = 1; i < data.length; i++) {
+						let id = data[i].replace('.mkv','').replace('.mp4','');
+						folderHtml += '<button type="button" \
+						onclick="window.open(\'media/' + data[i] + 
+						'\')" class="btn btn-dark btn-sm btn-outline-light" \
+						role="button" id="open_' + id + '">'+data[i]+'</button>\
+						<button type="button" class="btn btn-dark bt-sm" \
+						id="remove_' + id + '"><i class="fas fa-trash-alt"></i>\
+						</button>';
+
+					}
+					$('#folder').html(folderHtml);
+					for (let i = 1; i < data.length; i++) {
+						let id = data[i].replace('.mkv','').replace('.mp4','');
+						$('#remove_'+id).click(function() {
+							let url = 
+							'https://' + window.location.hostname + ':8888';
+							url = url.concat('/?remove=' + data[i]);
+							fetch(url).then(response => response.json())
+								.then(result => {
+									Janus.log(result);
+									$('#space').text(result[0] + ' GiB');
+									if (result.find(filename => filename == 
+										data[i]) == undefined) {
+										$(this).remove();
+										$('#open_'+id).remove();
+									}
+									if (result.length == 1) {
+										$('#remove').attr('disabled', true)
+										.unbind('click');
+									}
+								})
+								.catch(error => Janus.error(error));				
+						});
+					}
+				})
+				.catch(error => Janus.error(error));
+			return;
+		case 'remove':
+			url = url.concat('/?' + parameter);
+			fetch(url).then(response => response.json())
+			.then(data => {
+				Janus.log(data);
+				$('#space').text(data[0] + ' GiB');
+				if (data.length == 1) {
+					$('#remove').attr('disabled', true).unbind('click');
+					$('#folder').html('');
 				}
-				$('#carousel').html(carouselHtml)
-				$('#folder').html(folderHtml)
 			})
-		.catch(error => Janus.error(error));
-			return
+			.catch(error => Janus.error(error));
+			return;
 		case 'restart':
-			url = url.concat('/?' + parameter)
-			break
+			url = url.concat('/?' + parameter);
+			break;
 		case 'video_stabilisation':
 		case 'hflip':
 		case 'vflip':
@@ -879,66 +980,69 @@ function change(parameter) {
 		case 'record':
 		case 'persistent':
 			if ($('#'+parameter).val() == '0') {
-				$('#'+parameter).val('1')
-				$('#'+parameter).addClass('active')
+				$('#'+parameter).val('1');
+				$('#'+parameter).addClass('active');
 			} else {
-				$('#'+parameter).val('0')
-				$('#'+parameter).removeClass('active')
+				$('#'+parameter).val('0');
+				$('#'+parameter).removeClass('active');
 			}
-			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val())
-			break	
+			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val());
+			break;
 		case 'format':
 			if ($('#format').val() == '0') {
-				$('#format').val('1')
-				$('#format').html('<i class="fas fa-file"></i>')
+				$('#format').val('1');
+				$('#format').html('<i class="fas fa-file"></i>');
 			} else {
-				$('#format').val('0')
-				$('#format').html('<i class="fas fa-file-video"></i>')
+				$('#format').val('0');
+				$('#format').html('<i class="fas fa-file-video"></i>');
 			}
-			url = url.concat('/?format=' + $('#format').val())
-			break
+			url = url.concat('/?format=' + $('#format').val());
+			break;
 		case 'stats':
-			if ($('#'+parameter).val() == '0x00000000') {
-				$('#'+parameter).val('0x0000065d')
-				$('#'+parameter).addClass('active')
+			if (
+				$('#'+parameter).val() == '0x00000000' || 
+				$('#'+parameter).val() == '0x0000040c'
+			) {
+				$('#'+parameter).val('0x0000065d');
+				$('#'+parameter).addClass('active');
 			} else {
-				$('#'+parameter).val('0x00000000')
-				$('#'+parameter).removeClass('active')
+				$('#'+parameter).val('0x00000000');
+				$('#'+parameter).removeClass('active');
 			}
-			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val())
-			break
+			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val());
+			break;
 		default:
-			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val())
-			break
+			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val());
+			break;
 	}
 	fetch(url).then(response => response.json())
 		.then(data => {
-			Janus.log(data)
-			display(data)
+			Janus.log(data);
+			display(data);
 		})
 		.catch(error => Janus.error(error));
 }
 
 function zoom_in() {
 	if (zoom < sensor_mode.length - 1) {
-		zoom = zoom + 1
-		$('#sensor_mode').val(sensor_mode[zoom])
-		change('sensor_mode')
+		zoom = zoom + 1;
+		$('#sensor_mode').val(sensor_mode[zoom]);
+		change('sensor_mode');
 	} 	
 }
 
 function zoom_out() {
 	if (zoom > 0) {
-		zoom = zoom - 1
-		$('#sensor_mode').val(sensor_mode[zoom])
-		change('sensor_mode')
+		zoom = zoom - 1;
+		$('#sensor_mode').val(sensor_mode[zoom]);
+		change('sensor_mode');
 	} 
 }
 
 function collapse() {
-	$('#collapseOne').collapse('hide')
-	$('#collapseTwo').collapse('hide')
-	$('#collapseThree').collapse('hide')
-	$('#collapseFour').collapse('hide')
-	$('#collapseFive').collapse('hide')
+	$('#collapseOne').collapse('hide');
+	$('#collapseTwo').collapse('hide');
+	$('#collapseThree').collapse('hide');
+	$('#collapseFour').collapse('hide');
+	$('#collapseFive').collapse('hide');
 }

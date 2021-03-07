@@ -45,7 +45,9 @@ import logging
 import inspect
 from argparse import ArgumentParser, ArgumentTypeError
 import signal
-from os import walk
+import os
+import shutil
+
 
 def name(obj):
 
@@ -117,7 +119,8 @@ class RTSPServer(Server):
 	"""
 
 
-	def __init__(self, address='0.0.0.0', port='8000', path='/pi'):
+	def __init__(
+		self, camera_server, address='0.0.0.0', port='8000', path='/pi'):
 
 		"""
 		Initialize RTSP Server
@@ -131,6 +134,7 @@ class RTSPServer(Server):
 		self.__address__ = address
 		self.__port__ = port
 		self.__path__ = path
+		self.__camera_server__ = camera_server
 		self.__main_loop__ = GLib.MainLoop()
 
 		server = GstRtspServer.RTSPServer.new()
@@ -163,6 +167,7 @@ class RTSPServer(Server):
 
 		logging.info(
 			"RTSP Client connected from " + client.get_connection().get_ip())
+		self.__camera_server__.send_keyframe()
 
 
 	def start(self):
@@ -412,6 +417,12 @@ class HTTPSServer(WSGIServer):
 		if 'media' in req.params:
 			resp.body = (self.__camera_server__.get_media())
 			return
+		if 'remove' in req.params:
+			self.__camera_server__.remove(req.params['remove'])
+			resp.body = (self.__camera_server__.get_media())
+			return
+		if 'time' in req.params:
+			self.__camera_server__.set_time(int(req.params['time']))
 
 		resp.body = (self.__camera_server__.get_parameters())
 
@@ -505,8 +516,8 @@ class CameraServer(Server):
 
 			self.__width__ = 800
 			self.__height__ = 608
-			self.__framerate__ = 15
-			self.__bitrate__ = 4000000
+			self.__framerate__ = 30
+			self.__bitrate__ = 3000000
 			self.__sensor_mode__ = 0
 
 			# Effects
@@ -552,6 +563,33 @@ class CameraServer(Server):
 		self.init()
 
 
+	def set_time(self, time):
+		
+		"""
+		Sets system time to specified time
+		
+		Args:
+			time (int): time to set
+		"""
+		
+		os.system('sudo timedatectl set-time @' + str(time))
+
+
+	def send_keyframe(self):
+
+		"""
+		Forces to send key frame
+		"""
+
+		srcpad = self.__encoder__.get_static_pad( "src")
+		structure = Gst.Structure.new_empty("GstForceKeyUnit")
+		structure.set_value('all-headers', True)
+		srcpad.send_event(
+			Gst.Event.new_custom(Gst.EventType.CUSTOM_UPSTREAM,
+			structure))
+
+
+
 	def get_parameters(self):
 
 		"""
@@ -561,6 +599,7 @@ class CameraServer(Server):
 			json: Camera Server parameters set
 		"""
 
+		self.send_keyframe()
 		return json.dumps(
 			{
 				'model': self.__model__, 
@@ -625,11 +664,14 @@ class CameraServer(Server):
 			json: list of media files from the media folder
 		"""
 
-		_, _, filenames = next(walk('.'))
 		media = []
+		_, _, free = shutil.disk_usage("/")
+		media.append(str(free // (2**30)))
+		_, _, filenames = next(os.walk('.'))	
 		for filename in filenames:
 			if filename.endswith(".mkv") or filename.endswith(".mp4"):
 				media.append(filename)
+		media.sort()
 		return json.dumps(media, sort_keys=True)
 
 
@@ -659,7 +701,7 @@ class CameraServer(Server):
 		self.__encoder__.set_property('control-rate', 2)
 		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
 		self.__encoder__.set_property(
-			'interval-intraframes', 20*self.__framerate__)
+			'interval-intraframes', self.__framerate__)
 
 		self.__encoder_caps__ = Gst.Caps.new_empty_simple('video/x-h264')
 		self.__encoder_caps__.set_value('profile', 'baseline')
@@ -817,6 +859,8 @@ class CameraServer(Server):
 		function_name = "'" + threading.currentThread().name + "'." +\
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
+		if not self.__record__:
+			self.__stats__ = 0x000000000
 		if self.__persistent__:
 			logging.info("Writing parameters to 'camera.json' file")
 			with open('camera.json', 'w') as config:
@@ -952,6 +996,9 @@ class CameraServer(Server):
 		if self.__file_sink__ is not None:
 			self.__file_sink__.set_state(Gst.State.NULL)
 			self.__file_sink__ = None
+		if (self.__source__.get_property('annotation-mode') ==	0x0000040C):
+			self.__source__.set_property('annotation-mode', 0x00000000)
+		logging.info("Recording stopped")
 		# if request was executed in unsafe context
 		if not self.__safe__:
 			# if not unblocked by an error
@@ -967,7 +1014,6 @@ class CameraServer(Server):
 				self.__restart_lock__.release()
 				logging.debug(
 					function_name + ": self.__restart_lock__.release()")
-		logging.info("Recording stopped")
 		logging.debug(function_name + ": return False")
 		return False
 
@@ -1104,6 +1150,13 @@ class CameraServer(Server):
 					if message.src.name == 'rtsp-sink':
 						logging.info("Streaming started")
 					else:
+						if (
+							self.__source__.get_property('annotation-mode') ==
+							0x00000000
+						):
+							self.__source__.set_property(
+								'annotation-mode', 0x0000040C)
+						self.send_keyframe()
 						logging.info("Recording started")
 					# and request was executed in unsafe context
 					if not self.__safe__:
@@ -1142,7 +1195,7 @@ class CameraServer(Server):
 		source.set_property(
 			'annotation-text', 
 			'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
-		source.set_property('bitrate', 25000000)
+		#source.set_property('bitrate', 25000000)
 		# NOTE(marcin.sielski): camera-timeout property is not available in 
 		# regular GStreamer builds.
 		source.set_property('camera-timeout', self.__camera_timeout__)
@@ -1727,7 +1780,11 @@ class CameraServer(Server):
 			stats (int): stats to overlay on the video stream
 		"""
 		
-		self.__stats__ = stats
+		if self.__record__ and stats == 0x00000000:
+			self.__stats__ = 0x0000040C
+		else:
+			self.__stats__ = stats
+
 		self.__source__.set_property('annotation-mode', self.__stats__)
 
 
@@ -1922,22 +1979,23 @@ class CameraServer(Server):
 		if self.__record__:
 			# create pipeline
 			pad.remove_probe(info.id)
-			self.__file_queue__ = Gst.ElementFactory.make('queue', 'file-queue')	
+			self.__file_queue__ = Gst.ElementFactory.make('queue', 'file-queue')
+			#self.__file_queue__.set_property('max-size-bytes',  104857600)
+			#self.__file_queue__.set_property('max-size-buffers',  2000)
+			#self.__file_queue__.set_property('max-size-time',  10000000000)
 			if self.__format__:
 				if self.__throughput__ > 0:
-					self.__file_queue__.set_property('leaky', 1)
+					#self.__file_queue__.set_property('leaky', 1)
 					# self.__file_queue__.connect(
 					# 	'overrun', self.__on_overrun__)
 					self.__file_rate__ = Gst.ElementFactory.make(
 						'videorate', 'rate')
 					# estimate required throughput
-					# NOTE(marcin.sielski): Magic number 1.5 is estimated
-					# compression ratio
 					throughput = round(self.__width__ * self.__height__ * 12 *\
-						self.__framerate__ / (8 * 1024 * 1024 * 1.5))
+						self.__framerate__ / (8 * 1024 * 1024))
 					if throughput > self.__throughput__:
 						self.__raw_framerate__ = \
-							round(self.__throughput__ * 8 * 1024 * 1024 * 1.5 /
+							round(self.__throughput__ * 8 * 1024 * 1024 /
 							(self.__width__ * self.__height__ * 12))
 						if self.__raw_framerate__ <= 0:
 							self.__raw_framerate__ = 1
@@ -2028,6 +2086,7 @@ class CameraServer(Server):
 					'location', 'v_' + str(self.__width__) + 'x' + 
 					str(self.__height__) + 
 					'_H264_{0:0{1}}.mp4'.format(self.__fragment_id__, 2))
+				self.__file_sink__.set_property('send-keyframe-requests', True)
 			self.__pipeline__.add(self.__file_queue__)
 			self.__pipeline__.add(self.__file_sink__)
 			if self.__format__:
@@ -2117,6 +2176,42 @@ class CameraServer(Server):
 				Gst.PadProbeType.BLOCK | Gst.PadProbeType.BUFFER, 
 				self.__enable_disable_record__)
 			threading.Thread(target=self.__push_eos__, args=()).start()
+		logging.debug(function_name + ": exit")
+
+
+	def remove(self, filename):
+
+		"""
+		Remove file from media folder
+
+		Args:
+			filename (str): name of the file to remove
+		"""
+
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+
+		logging.debug(function_name + ": filename=" + str(filename))
+
+		if filename == '':
+			_, _, filenames = next(os.walk('.'))
+			media = []
+			for filename in filenames:
+				if filename.endswith(".mkv") or filename.endswith(".mp4"):
+					if os.path.exists(filename):
+						os.remove(filename)
+					else:
+						logging.warning(
+							function_name + ": filename=" + str(filename) + 
+						" does not exist")
+		else:
+			if os.path.exists(filename):
+				os.remove(filename)
+			else:
+				logging.warning(
+					function_name + ": filename=" + str(filename) + 
+					" does not exist")
+
 		logging.debug(function_name + ": exit")
 
 
@@ -2449,12 +2544,12 @@ class CameraService:
 		parser.add_argument(
 			'-c', '--camera_timeout', type=int, nargs='?', const=7500,
 			default=0, help="set camera timeout (Infinite by default)")
-		# NOTE(marcin.sielski): Magic number 2 MiB/s depends on underlying
+		# NOTE(marcin.sielski): Magic number 1.5 MiB/s depends on underlying
 		# hardware capabilities and was estimated experimentally for
-		# SanDisk Extreme 64 GB.
+		# SanDisk Extreme 64 GB and overclocked SD Host Controller.
 		parser.add_argument(
-			'-t', '--throughput', type=int, nargs='?', const=2, default=2,
-			help="set camera timeout (2 MiB by default)")
+			'-t', '--throughput', type=int, nargs='?', const=1.5, default=1.5,
+			help="set camera timeout (1.5 MiB by default)")
 		return parser
 
 
@@ -2471,7 +2566,8 @@ class CameraService:
 		Gst.init(None)
 		camera_server = CameraServer(args)
 		self.__servers__ = Servers(
-			[HTTPSServer(camera_server), camera_server, RTSPServer()])
+			[HTTPSServer(camera_server), camera_server, 
+			RTSPServer(camera_server)])
 		self.__servers__.start()
 		self.__running__ = True
 		logging.debug(function_name + ": exit")
