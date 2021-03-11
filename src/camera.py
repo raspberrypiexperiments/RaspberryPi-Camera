@@ -47,6 +47,8 @@ from argparse import ArgumentParser, ArgumentTypeError
 import signal
 import os
 import shutil
+import psutil
+from gpiozero import DiskUsage, CPUTemperature
 
 
 def name(obj):
@@ -447,8 +449,8 @@ class CameraServer(Server):
 		self.__image_effect_lock__ = threading.Lock()
 		with picamera.PiCamera() as camera:
 			self.__model__ = camera.revision
-		# self.__index__ = 0
 		self.__fragment_id__ = 0
+		self.__stats_id__ = 0
 
 		parameters = None
 
@@ -802,6 +804,7 @@ class CameraServer(Server):
 			logging.debug(
 				function_name + ": self.__image_effect_lock__.release()")
 			self.__image_effect_lock__.release()
+		self.set_stats(self.__stats__)
 		# if streaming is configured
 		if self.__rtsp__:
 			self.__rtsp__ = False
@@ -859,7 +862,7 @@ class CameraServer(Server):
 		function_name = "'" + threading.currentThread().name + "'." +\
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
-		if not self.__record__:
+		if not self.__record__ and self.__stats__ == 0x0000040C:
 			self.__stats__ = 0x000000000
 		if self.__persistent__:
 			logging.info("Writing parameters to 'camera.json' file")
@@ -876,6 +879,9 @@ class CameraServer(Server):
 				parameters['persistent'] = self.__persistent__
 				with open('camera.json', 'w') as config:
 					json.dump(parameters, config)
+		if self.__stats_id__ != 0:
+			GLib.source_remove(self.__stats_id__)
+			self.__stats_id__ = 0
 		# if still streaming during shutdown
 		if self.__rtsp__:
 			# stop streaming during shutdown
@@ -1771,6 +1777,24 @@ class CameraServer(Server):
 			'video-direction', self.__video_direction__)
 
 
+	def __on_stats__(self):
+		
+		"""
+		Callback function executed in the background to collect statistics
+		"""
+		
+		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
+			return False
+		self.__source__.set_property(
+			'annotation-text', 
+			'CPU: ' + str(psutil.cpu_percent()) + 
+			'% MEM: ' + str(psutil.virtual_memory().percent) + 
+			'% TMP: ' + str(round(CPUTemperature().temperature, 1)) + 
+			'C DSK: ' + str(round(DiskUsage().usage, 1)) + '% ' +
+			self.__model__ + ' ')
+		return True
+		
+
 	def set_stats(self, stats):
 		
 		"""
@@ -1780,10 +1804,17 @@ class CameraServer(Server):
 			stats (int): stats to overlay on the video stream
 		"""
 		
+		if self.__stats_id__ != 0:
+			GLib.source_remove(self.__stats_id__)
+			self.__stats_id__ = 0
+			self.__source__.set_property(
+				'annotation-text', 
+				'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
 		if self.__record__ and stats == 0x00000000:
 			self.__stats__ = 0x0000040C
 		else:
 			self.__stats__ = stats
+			self.__stats_id__ = GLib.timeout_add_seconds(1, self.__on_stats__)
 
 		self.__source__.set_property('annotation-mode', self.__stats__)
 
@@ -2523,6 +2554,7 @@ class CameraService:
 		"""
 
 		signal.signal(signal.SIGTERM, self.stop)
+		#signal.signal(signal.SIGKILL, self.stop)
 		self.__running__ = False
 
 
@@ -2544,12 +2576,12 @@ class CameraService:
 		parser.add_argument(
 			'-c', '--camera_timeout', type=int, nargs='?', const=7500,
 			default=0, help="set camera timeout (Infinite by default)")
-		# NOTE(marcin.sielski): Magic number 1.5 MiB/s depends on underlying
+		# NOTE(marcin.sielski): Magic number 1 MiB/s depends on underlying
 		# hardware capabilities and was estimated experimentally for
 		# SanDisk Extreme 64 GB and overclocked SD Host Controller.
 		parser.add_argument(
-			'-t', '--throughput', type=int, nargs='?', const=1.5, default=1.5,
-			help="set camera timeout (1.5 MiB by default)")
+			'-t', '--throughput', type=int, nargs='?', const=1, default=1,
+			help="set camera timeout (1 MiB by default)")
 		return parser
 
 
