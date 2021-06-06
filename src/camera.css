@@ -35,9 +35,9 @@ SOFTWARE.
     display: none;
 }
 
-.card-header
+.accordion-body
 {
-    padding: .5rem .5rem
+    padding: 0rem 0rem
 }
 
 .carousel-control-prev, .carousel-control-next
@@ -54,4 +54,20 @@ SOFTWARE.
 {
     color: #FFF;
     background-color: #343a40;
+}
+
+.form-select
+{
+    display: inline;
+    width: auto;
+}
+
+.badge
+{
+    display: none;
+}
+
+.btn
+{
+    margin: 2px
 }

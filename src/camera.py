@@ -1784,6 +1784,7 @@ class CameraServer(Server):
 		"""
 		
 		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
+			self.__stats_id__ = 0
 			return False
 		self.__source__.set_property(
 			'annotation-text', 

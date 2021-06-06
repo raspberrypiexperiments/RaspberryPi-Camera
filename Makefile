@@ -28,9 +28,19 @@ dependencies:
 	pip3 install --user falcon
 	pip3 install --user wsgiserver
 
+config:
+	sudo sysctl -w net.core.rmem_max=1342177280
+	sudo sysctl -w net.core.wmem_max=516777216
+	sudo sysctl -w net.core.rmem_default=10000000
+	sudo sysctl -w net.core.wmem_default=10000000
+	sudo sysctl -w net.core.netdev_max_backlog=416384
+	sudo sysctl -w net.core.optmem_max=524288 
+	sudo sysctl -w net.ipv4.udp_mem="11416320 15221760 22832640"
+	sudo sysctl -w net.core.netdev_budget=1024
+	sudo sysctl -p
 
-install: dependencies
-	sudo patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch
+install: dependencies config
+	patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch
 	rm -rf httpsserver.js
 	wget https://gist.githubusercontent.com/bencentra/909830fb705d5892b9324cffbca3926f/raw/a80edf0fdf0f38e4a43210e6438cbe511acc21a7/server.js -O httpsserver.js
 	sudo mkdir -p /opt/camera/bin
