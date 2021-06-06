@@ -25,9 +25,12 @@ dependencies:
 	sudo apt upgrade -y
 	#sudo apt install -y python3-netifaces
 	sudo npm i minify -g
+	pip3 install --user falcon
+	pip3 install --user wsgiserver
 
 
 install: dependencies
+	sudo patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch
 	rm -rf httpsserver.js
 	wget https://gist.githubusercontent.com/bencentra/909830fb705d5892b9324cffbca3926f/raw/a80edf0fdf0f38e4a43210e6438cbe511acc21a7/server.js -O httpsserver.js
 	sudo mkdir -p /opt/camera/bin

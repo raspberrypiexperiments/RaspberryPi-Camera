@@ -1,0 +1,14 @@
+--- a/lib/python3.7/site-packages/wsgiserver.py	2021-06-06 07:48:34.254827271 +0200
++++ b/lib/python3.7/site-packages/wsgiserver.py	2021-06-06 07:35:41.533932990 +0200
+@@ -1776,9 +1776,9 @@
+         if hasattr(ssl, 'create_default_context'):
+             self.context = ssl.create_default_context(
+                 purpose=ssl.Purpose.CLIENT_AUTH,
+-                cafile=certificate_chain
++                cafile=self.certificate_chain
+             )
+-            self.context.load_cert_chain(certificate, private_key)
++            self.context.load_cert_chain(self.certificate, self.private_key)
+ 
+     def bind(self, sock):
+         """Wrap and return the given socket."""
