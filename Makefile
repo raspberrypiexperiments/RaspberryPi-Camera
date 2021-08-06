@@ -30,7 +30,6 @@ dependencies:
 	sudo npm i minify -g
 	pip3 install --user falcon
 	pip3 install --user wsgiserver
-	sudo raspi-config nonint do_camera 0
 
 config:
 	sudo sysctl -w net.core.rmem_max=1342177280
@@ -58,6 +57,7 @@ install: dependencies config
 	sudo systemctl start httpsserver.service
 	sleep 3
 	sudo systemctl status httpsserver.service
+	sudo rm -rf /opt/camera/share/camera
 	sudo mkdir -p /opt/camera/share/camera
 	sudo bash -c "minify /opt/janus/share/janus/demos/janus.js > /opt/camera/share/camera/janus.min.js"
 	sudo cp src/index.html /opt/camera/share/camera
@@ -77,11 +77,12 @@ install: dependencies config
 	sudo cp src/camera.py /opt/camera/bin
 	mkdir -p /home/pi/camera
 	sudo cp src/camera.service /etc/systemd/system
+	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 	sudo systemctl enable camera.service
+	if [ `raspi-config nonint get_camera` -eq 1 ]; then sudo raspi-config nonint do_camera 0; sudo reboot; fi
 	sudo systemctl start camera.service
 	sleep 3
 	sudo systemctl status camera.service
-	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 
 uninstall:
 	sudo systemctl daemon-reload
@@ -122,14 +123,14 @@ redeploy:
 	cd /opt/camera/share/camera && sudo npm i @fortawesome/fontawesome-free
 	sudo bash -c "minify /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
 	sudo cp src/camera.py /opt/camera/bin
+	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 	sudo systemctl stop camera.service
 	sudo systemctl disable camera.service
 	sudo cp src/camera.service /etc/systemd/system
 	sudo systemctl enable camera.service
 	sudo systemctl start camera.service
-	sleep 3
+	sleep 3 
 	sudo systemctl status camera.service
-	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 
 swap:
 	sudo bash -c "echo 3 >'/proc/sys/vm/drop_caches' && sudo dphys-swapfile swapoff && sudo dphys-swapfile swapon && printf '\n%s\n' 'Ram-cache and Swap Cleared'"

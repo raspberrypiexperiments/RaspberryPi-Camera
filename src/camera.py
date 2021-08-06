@@ -49,6 +49,7 @@ import os
 import shutil
 import psutil
 from gpiozero import DiskUsage, CPUTemperature
+import subprocess
 
 
 def name(obj):
@@ -1786,13 +1787,16 @@ class CameraServer(Server):
 		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
 			self.__stats_id__ = 0
 			return False
+
 		self.__source__.set_property(
 			'annotation-text', 
 			'CPU: ' + str(psutil.cpu_percent()) + 
 			'% MEM: ' + str(psutil.virtual_memory().percent) + 
 			'% TMP: ' + str(round(CPUTemperature().temperature, 1)) + 
-			'C DSK: ' + str(round(DiskUsage().usage, 1)) + '% ' +
-			self.__model__ + ' ')
+			'C DSK: ' + str(round(DiskUsage().usage, 1)) + 
+			'% THR: ' + subprocess.check_output(
+				['vcgencmd', 'get_throttled']).decode('utf-8').replace(
+					'throttled=','').strip() + '\n\n' +self.__model__ + ' ')
 		return True
 		
 
@@ -1810,7 +1814,7 @@ class CameraServer(Server):
 			self.__stats_id__ = 0
 			self.__source__.set_property(
 				'annotation-text', 
-				'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
+				'Copyright (c) 2021 Marcin Sielski\n\n' + self.__model__ + ' ')
 		if self.__record__ and stats == 0x00000000:
 			self.__stats__ = 0x0000040C
 		else:
