@@ -24,9 +24,13 @@ dependencies:
 	sudo apt update
 	sudo apt upgrade -y
 	#sudo apt install -y python3-netifaces
+	sudo apt install npm -y
+	sudo npm -g install n
+	sudo n lts
 	sudo npm i minify -g
 	pip3 install --user falcon
 	pip3 install --user wsgiserver
+	sudo raspi-config nonint do_camera 0
 
 config:
 	sudo sysctl -w net.core.rmem_max=1342177280
@@ -40,7 +44,7 @@ config:
 	sudo sysctl -p
 
 install: dependencies config
-	patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch
+	if ! patch -R -d /home/$$USER/.local -p1 -s -f --dry-run < src/0002_wsgiserver.py.patch; then patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch; fi
 	rm -rf httpsserver.js
 	wget https://gist.githubusercontent.com/bencentra/909830fb705d5892b9324cffbca3926f/raw/a80edf0fdf0f38e4a43210e6438cbe511acc21a7/server.js -O httpsserver.js
 	sudo mkdir -p /opt/camera/bin
@@ -66,7 +70,7 @@ install: dependencies config
 	cd /opt/camera/share/camera && sudo npm i bootbox
 	cd /opt/camera/share/camera && sudo npm i @fortawesome/fontawesome-free
 	sudo bash -c "minify /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
-	sudo patch -d / -p1 < src/0001_janus.plugin.streaming.jcfg.patch
+	if ! patch -R -d / -p1 -s -f --dry-run <src/0001_janus.plugin.streaming.jcfg.patch; then sudo patch -d / -p1 < src/0001_janus.plugin.streaming.jcfg.patch; fi
 	sudo systemctl restart janus.service
 	sleep 3
 	sudo systemctl status janus.service
