@@ -34,14 +34,15 @@ This repository depends on:
 
 ## Known supported Raspberry Pi
 
-* Raspberry Pi 3B.
+* Raspberry Pi 3B,
+* Raspberry Pi 4B.
 
 ## Installation
 
 Installation procedure:
 
 ```bash
-~ $ git clone git@github.com:raspberrypiexperiments/RaspberryPi-Camera.git
+~ $ git clone --recurse-submodules -j4 git@github.com:raspberrypiexperiments/RaspberryPi-Camera.git
 ~ $ cd RaspberryPi-Camera
 ~/RaspberryPi-Camera $ make install
 ```
