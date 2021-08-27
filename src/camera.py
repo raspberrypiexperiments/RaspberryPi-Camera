@@ -1037,6 +1037,7 @@ class CameraServer(Server):
 		function_name = "'" + threading.currentThread().name + "'." +\
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		t = message.type
+		logging.debug(function_name + ": "+str(t))
 		if t == Gst.MessageType.EOS:
 			logging.debug(function_name + ": Gst.MessageType.EOS")
 			logging.info("EOS")
@@ -1784,6 +1785,9 @@ class CameraServer(Server):
 		Callback function executed in the background to collect statistics
 		"""
 		
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": entry")
 		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
 			self.__stats_id__ = 0
 			return False
@@ -1797,6 +1801,7 @@ class CameraServer(Server):
 			'% THR: ' + subprocess.check_output(
 				['vcgencmd', 'get_throttled']).decode('utf-8').replace(
 					'throttled=','').strip() + '\n\n' +self.__model__ + ' ')
+		logging.debug(function_name + ": true")
 		return True
 		
 
