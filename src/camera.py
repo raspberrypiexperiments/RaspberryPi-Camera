@@ -417,6 +417,8 @@ class HTTPSServer(WSGIServer):
 				int(req.params['max_size_time']))
 		if 'persistent' in req.params:
 			self.__camera_server__.set_persistent(int(req.params['persistent']))
+		if 'logging_level' in req.params:
+			self.__camera_server__.set_logging_level(int(req.params['logging_level']))
 		if 'media' in req.params:
 			resp.body = (self.__camera_server__.get_media())
 			return
@@ -444,6 +446,7 @@ class CameraServer(Server):
 
 		self.__camera_timeout__ = args.camera_timeout
 		self.__throughput__ = args.throughput
+		self.__default_logging_level__ = getattr(logging, args.debug.upper())
 		self.__error_lock__ = threading.Lock()
 		self.__main_lock__ = threading.Lock()
 		self.__restart_lock__ = threading.Lock()
@@ -501,6 +504,7 @@ class CameraServer(Server):
 			self.__hflip__ = (parameters['hflip'] == 1)
 			self.__vflip__ = (parameters['vflip'] == 1)
 			self.__video_direction__ = parameters['video_direction']
+			self.__logging_level__ = parameters['logging_level']
 
 			# Controls
 
@@ -562,6 +566,7 @@ class CameraServer(Server):
 			self.__max_size_bytes__ = 0
 			self.__max_size_time__ = 0
 			self.__persistent__ = False
+			self.__logging_level__ = 0
 
 		self.init()
 
@@ -652,7 +657,8 @@ class CameraServer(Server):
 				'max_files': self.__max_files__,
 				'max_size_bytes': self.__max_size_bytes__,
 				'max_size_time': self.__max_size_time__,
-				'persistent': int(self.__persistent__)
+				'persistent': int(self.__persistent__),
+				'logging_level': int(self.__logging_level__)
 			},
 
 			sort_keys=True)
@@ -668,11 +674,11 @@ class CameraServer(Server):
 		"""
 
 		media = []
-		_, _, free = shutil.disk_usage("/")
+		_, _, free = shutil.disk_usage('/')
 		media.append(str(free // (2**30)))
 		_, _, filenames = next(os.walk('.'))	
 		for filename in filenames:
-			if filename.endswith(".mkv") or filename.endswith(".mp4"):
+			if filename.endswith('.mkv') or filename.endswith('.mp4'):
 				media.append(filename)
 		media.sort()
 		return json.dumps(media, sort_keys=True)
@@ -2238,7 +2244,7 @@ class CameraServer(Server):
 			_, _, filenames = next(os.walk('.'))
 			media = []
 			for filename in filenames:
-				if filename.endswith(".mkv") or filename.endswith(".mp4"):
+				if filename.endswith('.mkv') or filename.endswith('.mp4'):
 					if os.path.exists(filename):
 						os.remove(filename)
 					else:
@@ -2504,6 +2510,39 @@ class CameraServer(Server):
 		logging.debug(function_name + ": persistent=" + str(persistent))
 		self.__persistent__ = persistent
 		logging.debug(function_name + ": exit")
+
+
+	def set_logging_level(self, logging_level):
+
+		"""
+		Set logging level
+
+		Args:
+			logging_level (int): logging level
+		"""	
+
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": logging_level=" + str(logging_level))
+		self.__logging_level__ = logging_level
+		root = logging.getLogger()
+		for h in root.handlers[:]:
+			root.removeHandler(h)
+			h.close()
+		if self.__logging_level__ == 0:
+			Gst.debug_set_active(False)
+			logging.basicConfig(
+				format="%(asctime)s %(levelname)s: %(message)s",
+				level=self.__default_logging_level__)
+		else:
+			Gst.debug_set_colored(False)
+			Gst.debug_set_default_threshold((50-self.__logging_level__+10)/10)
+			Gst.debug_set_active(True)
+			logging.basicConfig(
+				format="%(asctime)s %(levelname)s: %(message)s",
+				level=self.__logging_level__)
+		logging.debug(function_name + ": exit")
+
 
 
 class Servers(object):

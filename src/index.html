@@ -517,6 +517,15 @@ SOFTWARE.
 								<button type="button" class="btn btn-lg btn-dark" aria-label="persistent" onclick="change('media')" id="media" data-bs-target="#mediaModal" data-bs-toggle="modal">
 									<i class="fas fa-folder-open"></i>
 								</button>
+								<button type="button" class="btn btn-lg btn-dark" disabled>Logging Level</button>
+								<select class="form-select form-control-lg bg-dark text-light" aria-label="logging_level" onchange="change('logging_level')" id="logging_level">		
+									<option value="10">debug</option>
+									<option value="20">info</option>
+									<option value="30">warning</option>
+									<option value="40">error</option>
+									<option value="50">critical</option>
+									<option value="0" selected>none</option>
+								</select>
 							</div>
 						</div>
 					</div>

@@ -888,6 +888,7 @@ function display(data) {
 	} else {
 		$('#persistent').addClass('active');
 	}
+	$('#logging_level').val(data.logging_level);
 }
 
 function change(parameter) {
