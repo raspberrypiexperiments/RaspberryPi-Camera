@@ -455,6 +455,8 @@ class CameraServer(Server):
 			self.__model__ = camera.revision
 		self.__fragment_id__ = 0
 		self.__stats_id__ = 0
+		self.__watchdog__ = False
+		self.__detect_freeze__ = True
 
 		parameters = None
 
@@ -516,6 +518,7 @@ class CameraServer(Server):
 			self.__max_size_bytes__ = parameters['max_size_bytes']
 			self.__max_size_time__ = parameters['max_size_time']
 			self.__persistent__ = (parameters['persistent'] == 1)
+			self.__logging_level__ = parameters['logging_level']
 		
 		else:
 		
@@ -684,6 +687,61 @@ class CameraServer(Server):
 		return json.dumps(media, sort_keys=True)
 
 
+	def __on_running__(self, queue):
+
+		"""
+		Queue running callback executed when queue is running
+
+		Args:
+			queue (GstQueue): queue
+		"""
+
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": entry")
+		self.__watchdog__ = False
+		logging.debug(function_name + ": exit")
+
+
+	def __on_freeze__(self):
+
+		"""
+		Freeze detection callback
+
+		Returns:
+			false
+		"""
+
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": entry")
+		if self.__watchdog__:
+			self.__watchdog__ = False
+			self.__on_restart__()
+		self.__detect_freeze__ = True
+		logging.debug(function_name + ": false")
+		return False
+
+
+	def __on_underrun__(self, queue):
+
+		"""
+		Queue overrun callback executed when queue is empty
+
+		Args:
+			queue (GstQueue): queue
+		"""
+
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": entry")
+		if self.__detect_freeze__:
+			self.__detect_freeze__ = False
+			self.__watchdog__ = True
+			GLib.timeout_add_seconds(1, self.__on_freeze__)
+		logging.debug(function_name + ": exit")
+
+
 	def init(self):
 
 		"""
@@ -705,6 +763,11 @@ class CameraServer(Server):
 		self.__source_capsfilter__.set_property('caps', self.__source_caps__)
 
 		self.__raw_tee__ = Gst.ElementFactory.make('tee', 'raw-tee')
+
+		self.__encoder_queue__ = Gst.ElementFactory.make(
+			'queue', 'encoder-queue')
+		self.__encoder_queue__.connect('running', self.__on_running__)
+		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
 
 		self.__encoder__ = Gst.ElementFactory.make('omxh264enc', 'encoder')
 		self.__encoder__.set_property('control-rate', 2)
@@ -746,6 +809,7 @@ class CameraServer(Server):
 		self.__pipeline__.add(self.__source__)
 		self.__pipeline__.add(self.__source_capsfilter__)
 		self.__pipeline__.add(self.__raw_tee__)
+		self.__pipeline__.add(self.__encoder_queue__)
 		self.__pipeline__.add(self.__encoder__)
 		self.__pipeline__.add(self.__encoder_capsfilter__)
 		self.__pipeline__.add(self.__parser_queue__)
@@ -759,7 +823,8 @@ class CameraServer(Server):
 
 		self.__source__.link(self.__source_capsfilter__)
 		self.__source_capsfilter__.link(self.__raw_tee__)
-		self.__raw_tee__.link(self.__encoder__)           
+		self.__raw_tee__.link(self.__encoder_queue__)    
+		self.__encoder_queue__.link(self.__encoder__) 
 		self.__encoder__.link(self.__encoder_capsfilter__)
 		self.__encoder_capsfilter__.link(self.__parser_queue__)
 		self.__parser_queue__.link(self.__parser__)
@@ -791,6 +856,7 @@ class CameraServer(Server):
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		logging.info(name(self) + " started")
+		self.set_logging_level(self.__logging_level__)
 		# NOTE(marcin.sielski): For some reason encoder randomly does not start 
 		# with the image effect configured to hatch. Delay setting it up 
 		# by one second.
@@ -1796,6 +1862,7 @@ class CameraServer(Server):
 		logging.debug(function_name + ": entry")
 		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
 			self.__stats_id__ = 0
+			logging.debug(function_name + ": false")
 			return False
 
 		self.__source__.set_property(
