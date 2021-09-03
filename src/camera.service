@@ -22,6 +22,8 @@
 
 [Unit]
 Description=Camera Service
+StartLimitIntervalSec=500
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -30,9 +32,11 @@ Group=pi
 WorkingDirectory=/home/pi/camera
 Environment=PYTHONPATH=/home/pi/.local/lib/python3.7/site-packages:/usr/local/lib/python3.7/site-packages 
 Environment=LD_LIBRARY_PATH=/usr/local/lib
-ExecStart=/usr/bin/taskset -c 0,1 /usr/bin/python3 /opt/camera/bin/camera.py
+ExecStart=/usr/bin/taskset -c 0,1,2,3 /usr/bin/python3 /opt/camera/bin/camera.py
 StandardOutput=syslog
 StandardError=syslog
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

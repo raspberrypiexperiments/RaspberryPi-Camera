@@ -766,6 +766,9 @@ class CameraServer(Server):
 
 		self.__encoder_queue__ = Gst.ElementFactory.make(
 			'queue', 'encoder-queue')
+		self.__encoder_queue__.set_property('max-size-buffers', 2000)
+		self.__encoder_queue__.set_property('max-size-bytes', 104857600)
+		self.__encoder_queue__.set_property('max-size-time', 10000000000)
 		self.__encoder_queue__.connect('running', self.__on_running__)
 		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
 
