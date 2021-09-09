@@ -717,7 +717,7 @@ class CameraServer(Server):
 		logging.debug(function_name + ": entry")
 		if self.__watchdog__:
 			self.__watchdog__ = False
-			self.__on_restart__()
+			self.restart()
 		self.__detect_freeze__ = True
 		logging.debug(function_name + ": false")
 		return False
@@ -766,9 +766,13 @@ class CameraServer(Server):
 
 		self.__encoder_queue__ = Gst.ElementFactory.make(
 			'queue', 'encoder-queue')
-		self.__encoder_queue__.set_property('max-size-buffers', 2000)
-		self.__encoder_queue__.set_property('max-size-bytes', 104857600)
-		self.__encoder_queue__.set_property('max-size-time', 10000000000)
+		# NOTE(marcin.sielski): Not confirmed if the code below can detect
+		# camera source stuck. Camera source stuck may be potentially caused by
+		# environmental factors such as incorrect power supply or high cpu load
+		# caused by cron
+		self.__encoder_queue__.set_property('max-size-buffers', 1000)
+		self.__encoder_queue__.set_property('max-size-bytes', 52428800)
+		self.__encoder_queue__.set_property('max-size-time', 5000000000)
 		self.__encoder_queue__.connect('running', self.__on_running__)
 		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
 
@@ -786,6 +790,12 @@ class CameraServer(Server):
 		self.__encoder_capsfilter__.set_property('caps', self.__encoder_caps__)
 
 		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
+		# NOTE(marcin.sielski): Not confirmed if the code below can detect
+		# camera source stuck. Camera source stuck may be potentially caused by
+		# environmental factors such as incorrect power supply or high cpu load
+		# caused by cron
+		self.__parser_queue__.connect('running', self.__on_running__)
+		self.__parser_queue__.connect('underrun', self.__on_underrun__)
 
 		self.__parser__ = Gst.ElementFactory.make('h264parse', 'parser')
 		GstBase.BaseParse.set_infer_ts(self.__parser__, True)	
@@ -2114,7 +2124,7 @@ class CameraServer(Server):
 						self.__raw_framerate__ = \
 							round(self.__throughput__ * 8 * 1024 * 1024 /
 							(self.__width__ * self.__height__ * 12))
-						if self.__raw_framerate__ <= 0:
+						if self.__raw_framerate__ <= 1:
 							self.__raw_framerate__ = 1
 					else:
 				 		self.__raw_framerate__ = self.__framerate__

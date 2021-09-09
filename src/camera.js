@@ -831,8 +831,12 @@ function display(data) {
 	$('#video_stabilisation').val(data.video_stabilisation);
 	if (data.video_stabilisation == '0') {
 		$('#video_stabilisation').removeClass('active');
+		$('#video_stabilisation').removeClass('btn-light');
+		$('#video_stabilisation').addClass('btn-dark');
 	} else {
 		$('#video_stabilisation').addClass('active');
+		$('#video_stabilisation').removeClass('btn-dark');
+		$('#video_stabilisation').addClass('btn-light');
 	}
 	
 
@@ -842,14 +846,22 @@ function display(data) {
 	$('#hflip').val(data.hflip);
 	if (data.hflip == '0') {
 		$('#hflip').removeClass('active');
+		$('#hflip').removeClass('btn-light');
+		$('#hflip').addClass('btn-dark');
 	} else {
 		$('#hflip').addClass('active');
+		$('#hflip').removeClass('btn-dark');
+		$('#hflip').addClass('btn-light');
 	}
 	$('#vflip').val(data.vflip);
 	if (data.vflip == '0') {
 		$('#vflip').removeClass('active');
+		$('#vflip').removeClass('btn-light');
+		$('#vflip').addClass('btn-dark');
 	} else {
 		$('#vflip').addClass('active');
+		$('#vflip').removeClass('btn-dark');
+		$('#vflip').addClass('btn-light');
 	}
 	$('#video_direction').val(data.video_direction);
 
@@ -858,20 +870,32 @@ function display(data) {
 	$('#stats').val(data.stats);
 	if (data.stats == '0x00000000' || data.stats == '0x0000040c') {
 		$('#stats').removeClass('active');
+		$('#stats').removeClass('btn-light');
+		$('#stats').addClass('btn-dark');
 	} else {
 		$('#stats').addClass('active');
+		$('#stats').removeClass('btn-dark');
+		$('#stats').addClass('btn-light');
 	}
 	$('#rtsp').val(data.rtsp);
 	if (data.rtsp == '0') {
 		$('#rtsp').removeClass('active');
+		$('#rtsp').removeClass('btn-light');
+		$('#rtsp').addClass('btn-dark');
 	} else {
 		$('#rtsp').addClass('active');
+		$('#rtsp').removeClass('btn-dark');
+		$('#rtsp').addClass('btn-light');
 	}
 	$('#record').val(data.record);
 	if (data.record == '0') {
 		$('#record').removeClass('active');
+		$('#record').removeClass('btn-light');
+		$('#record').addClass('btn-dark');
 	} else {
 		$('#record').addClass('active');
+		$('#record').removeClass('btn-dark');
+		$('#record').addClass('btn-light');
 	}
 	$('#format').val(data.format);
 	if (data.format == '0') {
@@ -885,8 +909,12 @@ function display(data) {
 	$('#persistent').val(data.persistent);
 	if (data.persistent == '0') {
 		$('#persistent').removeClass('active');
+		$('#persistent').removeClass('btn-light');
+		$('#persistent').addClass('btn-dark');
 	} else {
 		$('#persistent').addClass('active');
+		$('#persistent').removeClass('btn-dark');
+		$('#persistent').addClass('btn-light');
 	}
 	$('#logging_level').val(data.logging_level);
 }
@@ -983,9 +1011,13 @@ function change(parameter) {
 			if ($('#'+parameter).val() == '0') {
 				$('#'+parameter).val('1');
 				$('#'+parameter).addClass('active');
+				$('#'+parameter).removeClass('btn-dark');
+				$('#'+parameter).addClass('btn-light');
 			} else {
 				$('#'+parameter).val('0');
 				$('#'+parameter).removeClass('active');
+				$('#'+parameter).removeClass('btn-light');
+				$('#'+parameter).addClass('btn-dark');
 			}
 			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val());
 			break;
@@ -1006,9 +1038,13 @@ function change(parameter) {
 			) {
 				$('#'+parameter).val('0x0000065d');
 				$('#'+parameter).addClass('active');
+				$('#'+parameter).removeClass('btn-dark');
+				$('#'+parameter).addClass('btn-light');
 			} else {
 				$('#'+parameter).val('0x00000000');
 				$('#'+parameter).removeClass('active');
+				$('#'+parameter).removeClass('btn-light');
+				$('#'+parameter).addClass('btn-dark');
 			}
 			url = url.concat('/?' + parameter + '=' + $('#'+parameter).val());
 			break;
