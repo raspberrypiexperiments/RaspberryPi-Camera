@@ -48,12 +48,16 @@ SOFTWARE.
 .close
 {
     color: #FFF;
+    background-color: #212529;
+    border-width: 0px;
+    font-size: 1.25rem;
+    font-weight: bold;
 }
 
 .modal-content
 {
     color: #FFF;
-    background-color: #343a40;
+    background-color: #212529;
 }
 
 .form-select

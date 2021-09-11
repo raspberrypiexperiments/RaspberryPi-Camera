@@ -687,59 +687,59 @@ class CameraServer(Server):
 		return json.dumps(media, sort_keys=True)
 
 
-	def __on_running__(self, queue):
-
-		"""
-		Queue running callback executed when queue is running
-
-		Args:
-			queue (GstQueue): queue
-		"""
-
-		function_name = "'" + threading.currentThread().name + "'." +\
-			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-		logging.debug(function_name + ": entry")
-		self.__watchdog__ = False
-		logging.debug(function_name + ": exit")
-
-
-	def __on_freeze__(self):
-
-		"""
-		Freeze detection callback
-
-		Returns:
-			false
-		"""
-
-		function_name = "'" + threading.currentThread().name + "'." +\
-			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-		logging.debug(function_name + ": entry")
-		if self.__watchdog__:
-			self.__watchdog__ = False
-			self.restart()
-		self.__detect_freeze__ = True
-		logging.debug(function_name + ": false")
-		return False
-
-
-	def __on_underrun__(self, queue):
-
-		"""
-		Queue overrun callback executed when queue is empty
-
-		Args:
-			queue (GstQueue): queue
-		"""
-
-		function_name = "'" + threading.currentThread().name + "'." +\
-			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-		logging.debug(function_name + ": entry")
-		if self.__detect_freeze__:
-			self.__detect_freeze__ = False
-			self.__watchdog__ = True
-			GLib.timeout_add_seconds(1, self.__on_freeze__)
-		logging.debug(function_name + ": exit")
+#	def __on_running__(self, queue):
+#
+#		"""
+#		Queue running callback executed when queue is running
+#
+#		Args:
+#			queue (GstQueue): queue
+#		"""
+#
+#		function_name = "'" + threading.currentThread().name + "'." +\
+#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+#		logging.debug(function_name + ": entry")
+#		self.__watchdog__ = False
+#		logging.debug(function_name + ": exit")
+#
+#
+#	def __on_freeze__(self):
+#
+#		"""
+#		Freeze detection callback
+#
+#		Returns:
+#			false
+#		"""
+#
+#		function_name = "'" + threading.currentThread().name + "'." +\
+#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+#		logging.debug(function_name + ": entry")
+#		if self.__watchdog__:
+#			self.__watchdog__ = False
+#			self.restart()
+#		self.__detect_freeze__ = True
+#		logging.debug(function_name + ": false")
+#		return False
+#
+#
+#	def __on_underrun__(self, queue):
+#
+#		"""
+#		Queue overrun callback executed when queue is empty
+#
+#		Args:
+#			queue (GstQueue): queue
+#		"""
+#
+#		function_name = "'" + threading.currentThread().name + "'." +\
+#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+#		logging.debug(function_name + ": entry")
+#		if self.__detect_freeze__:
+#			self.__detect_freeze__ = False
+#			self.__watchdog__ = True
+#			GLib.timeout_add_seconds(1, self.__on_freeze__)
+#		logging.debug(function_name + ": exit")
 
 
 	def init(self):
@@ -764,17 +764,17 @@ class CameraServer(Server):
 
 		self.__raw_tee__ = Gst.ElementFactory.make('tee', 'raw-tee')
 
-		self.__encoder_queue__ = Gst.ElementFactory.make(
-			'queue', 'encoder-queue')
-		# NOTE(marcin.sielski): Not confirmed if the code below can detect
-		# camera source stuck. Camera source stuck may be potentially caused by
-		# environmental factors such as incorrect power supply or high cpu load
-		# caused by cron
-		self.__encoder_queue__.set_property('max-size-buffers', 1000)
-		self.__encoder_queue__.set_property('max-size-bytes', 52428800)
-		self.__encoder_queue__.set_property('max-size-time', 5000000000)
-		self.__encoder_queue__.connect('running', self.__on_running__)
-		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
+#		self.__encoder_queue__ = Gst.ElementFactory.make(
+#			'queue', 'encoder-queue')
+#		# NOTE(marcin.sielski): Not confirmed if the code below can detect
+#		# camera source stuck. Camera source stuck may be potentially caused by
+#		# environmental factors such as incorrect power supply or high cpu load
+#		# caused by cron
+#		self.__encoder_queue__.set_property('max-size-buffers', 1000)
+#		self.__encoder_queue__.set_property('max-size-bytes', 52428800)
+#		self.__encoder_queue__.set_property('max-size-time', 5000000000)
+#		self.__encoder_queue__.connect('running', self.__on_running__)
+#		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
 
 		self.__encoder__ = Gst.ElementFactory.make('omxh264enc', 'encoder')
 		self.__encoder__.set_property('control-rate', 2)
@@ -790,12 +790,18 @@ class CameraServer(Server):
 		self.__encoder_capsfilter__.set_property('caps', self.__encoder_caps__)
 
 		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
+		self.__parser_queue__.set_property(
+			'max-size-buffers', 3*self.__framerate__*200)
+		self.__parser_queue__.set_property(
+			'max-size-bytes', 
+			3*self.__framerate__*self.__width__*self.__height__)
+		self.__parser_queue__.set_property('max-size-time', 3*1000000000)
 		# NOTE(marcin.sielski): Not confirmed if the code below can detect
 		# camera source stuck. Camera source stuck may be potentially caused by
 		# environmental factors such as incorrect power supply or high cpu load
 		# caused by cron
-		self.__parser_queue__.connect('running', self.__on_running__)
-		self.__parser_queue__.connect('underrun', self.__on_underrun__)
+#		self.__parser_queue__.connect('running', self.__on_running__)
+#		self.__parser_queue__.connect('underrun', self.__on_underrun__)
 
 		self.__parser__ = Gst.ElementFactory.make('h264parse', 'parser')
 		GstBase.BaseParse.set_infer_ts(self.__parser__, True)	
@@ -806,6 +812,12 @@ class CameraServer(Server):
 
 		self.__payloader_queue__ = Gst.ElementFactory.make(
 			'queue', 'payloader-queue')
+		self.__payloader_queue__.set_property(
+			'max-size-buffers', 3*self.__framerate__*200)
+		self.__payloader_queue__.set_property(
+			'max-size-bytes', 
+			3*self.__framerate__*self.__width__*self.__height__)
+		self.__payloader_queue__.set_property('max-size-time', 3*1000000000)
 
 		self.__payloader__ = Gst.ElementFactory.make('rtph264pay', 'payloader')
 		self.__payloader__.set_property('config-interval', -1)
@@ -813,6 +825,12 @@ class CameraServer(Server):
 		self.__rtsp_tee__ = Gst.ElementFactory.make('tee', 'rtsp-tee')
 
 		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
+		self.__sink_queue__.set_property(
+			'max-size-buffers', 3*self.__framerate__*200)
+		self.__sink_queue__.set_property(
+			'max-size-bytes', 
+			3*self.__framerate__*self.__width__*self.__height__)
+		self.__sink_queue__.set_property('max-size-time', 3*1000000000)
 
 		self.__sink__ = Gst.ElementFactory.make('udpsink', 'sink')
 		self.__sink__.set_property('host', '127.0.0.1')
@@ -822,7 +840,7 @@ class CameraServer(Server):
 		self.__pipeline__.add(self.__source__)
 		self.__pipeline__.add(self.__source_capsfilter__)
 		self.__pipeline__.add(self.__raw_tee__)
-		self.__pipeline__.add(self.__encoder_queue__)
+#		self.__pipeline__.add(self.__encoder_queue__)
 		self.__pipeline__.add(self.__encoder__)
 		self.__pipeline__.add(self.__encoder_capsfilter__)
 		self.__pipeline__.add(self.__parser_queue__)
@@ -836,8 +854,8 @@ class CameraServer(Server):
 
 		self.__source__.link(self.__source_capsfilter__)
 		self.__source_capsfilter__.link(self.__raw_tee__)
-		self.__raw_tee__.link(self.__encoder_queue__)    
-		self.__encoder_queue__.link(self.__encoder__) 
+		self.__raw_tee__.link(self.__encoder__)    
+#		self.__encoder_queue__.link(self.__encoder__) 
 		self.__encoder__.link(self.__encoder_capsfilter__)
 		self.__encoder_capsfilter__.link(self.__parser_queue__)
 		self.__parser_queue__.link(self.__parser__)
@@ -2107,9 +2125,12 @@ class CameraServer(Server):
 			# create pipeline
 			pad.remove_probe(info.id)
 			self.__file_queue__ = Gst.ElementFactory.make('queue', 'file-queue')
-			#self.__file_queue__.set_property('max-size-bytes',  104857600)
-			#self.__file_queue__.set_property('max-size-buffers',  2000)
-			#self.__file_queue__.set_property('max-size-time',  10000000000)
+			self.__file_queue__.set_property(
+				'max-size-bytes', 
+				3*self.__framerate__*self.__width__*self.__height__)
+			self.__file_queue__.set_property(
+				'max-size-buffers',  3*self.__framerate__*200)
+			self.__file_queue__.set_property('max-size-time',  3*1000000000)
 			if self.__format__:
 				if self.__throughput__ > 0:
 					#self.__file_queue__.set_property('leaky', 1)
