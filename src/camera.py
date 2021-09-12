@@ -1113,6 +1113,7 @@ class CameraServer(Server):
 		if self.__file_sink__ is not None:
 			self.__file_sink__.set_state(Gst.State.NULL)
 			self.__file_sink__ = None
+		os.sync()
 		if (self.__source__.get_property('annotation-mode') ==	0x0000040C):
 			self.__source__.set_property('annotation-mode', 0x00000000)
 		logging.info("Recording stopped")
