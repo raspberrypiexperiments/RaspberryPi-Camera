@@ -831,13 +831,13 @@ class CameraServer(Server):
 
 		self.__rtsp_tee__ = Gst.ElementFactory.make('tee', 'rtsp-tee')
 
-#		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
-#		self.__sink_queue__.set_property(
-#			'max-size-buffers', 3*self.__framerate__*200)
-#		self.__sink_queue__.set_property(
-#			'max-size-bytes', 
-#			3*self.__framerate__*self.__width__*self.__height__)
-#		self.__sink_queue__.set_property('max-size-time', 3*1000000000)
+		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
+		self.__sink_queue__.set_property(
+			'max-size-buffers', 3*self.__framerate__*200)
+		self.__sink_queue__.set_property(
+			'max-size-bytes', 
+			3*self.__framerate__*self.__width__*self.__height__)
+		self.__sink_queue__.set_property('max-size-time', 3*1000000000)
 
 		self.__sink__ = Gst.ElementFactory.make('udpsink', 'sink')
 		self.__sink__.set_property('host', '127.0.0.1')
@@ -856,7 +856,7 @@ class CameraServer(Server):
 #		self.__pipeline__.add(self.__payloader_queue__)
 		self.__pipeline__.add(self.__payloader__)
 		self.__pipeline__.add(self.__rtsp_tee__)
-#		self.__pipeline__.add(self.__sink_queue__)
+		self.__pipeline__.add(self.__sink_queue__)
 		self.__pipeline__.add(self.__sink__)
 
 		self.__source__.link(self.__source_capsfilter__)
@@ -870,8 +870,8 @@ class CameraServer(Server):
 		self.__h264_tee__.link(self.__payloader__)
 #		self.__payloader_queue__.link(self.__payloader__)
 		self.__payloader__.link(self.__rtsp_tee__)
-		self.__rtsp_tee__.link(self.__sink__)
-#		self.__sink_queue__.link(self.__sink__)
+		self.__rtsp_tee__.link(self.__sink_queue__)
+		self.__sink_queue__.link(self.__sink__)
 		
 		self.bus = self.__pipeline__.get_bus()
 		self.bus.set_sync_handler(self.__on_message__)
