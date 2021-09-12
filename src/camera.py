@@ -457,6 +457,8 @@ class CameraServer(Server):
 		self.__stats_id__ = 0
 		self.__watchdog__ = False
 		self.__detect_freeze__ = True
+		self.__extra_controls__ = 'encode,frame_level_rate_control_enable=1,\
+			h264_profile=0,h264_level=14,video_bitrate={}'
 
 		parameters = None
 
@@ -776,26 +778,31 @@ class CameraServer(Server):
 #		self.__encoder_queue__.connect('running', self.__on_running__)
 #		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
 
-		self.__encoder__ = Gst.ElementFactory.make('omxh264enc', 'encoder')
-		self.__encoder__.set_property('control-rate', 2)
-		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
+#		self.__encoder__ = Gst.ElementFactory.make('omxh264enc', 'encoder')
+#		self.__encoder__.set_property('control-rate', 2)
+#		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
+#		self.__encoder__.set_property(
+#			'interval-intraframes', self.__framerate__)
+		self.__encoder__ = Gst.ElementFactory.make('v4l2h264enc', 'encoder')
 		self.__encoder__.set_property(
-			'interval-intraframes', self.__framerate__)
+			'extra-controls', Gst.Structure.new_from_string(
+				self.__extra_controls__.format(self.__bitrate__)))
 
 		self.__encoder_caps__ = Gst.Caps.new_empty_simple('video/x-h264')
 		self.__encoder_caps__.set_value('profile', 'baseline')
+		self.__encoder_caps__.set_value('level', '4')
 
 		self.__encoder_capsfilter__ = Gst.ElementFactory.make(
 			'capsfilter', 'encoder-capsfilter')
 		self.__encoder_capsfilter__.set_property('caps', self.__encoder_caps__)
 
-		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
-		self.__parser_queue__.set_property(
-			'max-size-buffers', 3*self.__framerate__*200)
-		self.__parser_queue__.set_property(
-			'max-size-bytes', 
-			3*self.__framerate__*self.__width__*self.__height__)
-		self.__parser_queue__.set_property('max-size-time', 3*1000000000)
+#		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
+#		self.__parser_queue__.set_property(
+#			'max-size-buffers', 3*self.__framerate__*200)
+#		self.__parser_queue__.set_property(
+#			'max-size-bytes', 
+#			3*self.__framerate__*self.__width__*self.__height__)
+#		self.__parser_queue__.set_property('max-size-time', 3*1000000000)
 		# NOTE(marcin.sielski): Not confirmed if the code below can detect
 		# camera source stuck. Camera source stuck may be potentially caused by
 		# environmental factors such as incorrect power supply or high cpu load
@@ -810,27 +817,27 @@ class CameraServer(Server):
 
 		self.__h264_tee__ = Gst.ElementFactory.make('tee', 'h264-tee')
 
-		self.__payloader_queue__ = Gst.ElementFactory.make(
-			'queue', 'payloader-queue')
-		self.__payloader_queue__.set_property(
-			'max-size-buffers', 3*self.__framerate__*200)
-		self.__payloader_queue__.set_property(
-			'max-size-bytes', 
-			3*self.__framerate__*self.__width__*self.__height__)
-		self.__payloader_queue__.set_property('max-size-time', 3*1000000000)
+#		self.__payloader_queue__ = Gst.ElementFactory.make(
+#			'queue', 'payloader-queue')
+#		self.__payloader_queue__.set_property(
+#			'max-size-buffers', 3*self.__framerate__*200)
+#		self.__payloader_queue__.set_property(
+#			'max-size-bytes', 
+#			3*self.__framerate__*self.__width__*self.__height__)
+#		self.__payloader_queue__.set_property('max-size-time', 3*1000000000)
 
 		self.__payloader__ = Gst.ElementFactory.make('rtph264pay', 'payloader')
 		self.__payloader__.set_property('config-interval', -1)
 
 		self.__rtsp_tee__ = Gst.ElementFactory.make('tee', 'rtsp-tee')
 
-		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
-		self.__sink_queue__.set_property(
-			'max-size-buffers', 3*self.__framerate__*200)
-		self.__sink_queue__.set_property(
-			'max-size-bytes', 
-			3*self.__framerate__*self.__width__*self.__height__)
-		self.__sink_queue__.set_property('max-size-time', 3*1000000000)
+#		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
+#		self.__sink_queue__.set_property(
+#			'max-size-buffers', 3*self.__framerate__*200)
+#		self.__sink_queue__.set_property(
+#			'max-size-bytes', 
+#			3*self.__framerate__*self.__width__*self.__height__)
+#		self.__sink_queue__.set_property('max-size-time', 3*1000000000)
 
 		self.__sink__ = Gst.ElementFactory.make('udpsink', 'sink')
 		self.__sink__.set_property('host', '127.0.0.1')
@@ -843,13 +850,13 @@ class CameraServer(Server):
 #		self.__pipeline__.add(self.__encoder_queue__)
 		self.__pipeline__.add(self.__encoder__)
 		self.__pipeline__.add(self.__encoder_capsfilter__)
-		self.__pipeline__.add(self.__parser_queue__)
+#		self.__pipeline__.add(self.__parser_queue__)
 		self.__pipeline__.add(self.__parser__)
 		self.__pipeline__.add(self.__h264_tee__)
-		self.__pipeline__.add(self.__payloader_queue__)
+#		self.__pipeline__.add(self.__payloader_queue__)
 		self.__pipeline__.add(self.__payloader__)
 		self.__pipeline__.add(self.__rtsp_tee__)
-		self.__pipeline__.add(self.__sink_queue__)
+#		self.__pipeline__.add(self.__sink_queue__)
 		self.__pipeline__.add(self.__sink__)
 
 		self.__source__.link(self.__source_capsfilter__)
@@ -857,14 +864,14 @@ class CameraServer(Server):
 		self.__raw_tee__.link(self.__encoder__)    
 #		self.__encoder_queue__.link(self.__encoder__) 
 		self.__encoder__.link(self.__encoder_capsfilter__)
-		self.__encoder_capsfilter__.link(self.__parser_queue__)
-		self.__parser_queue__.link(self.__parser__)
+		self.__encoder_capsfilter__.link(self.__parser__)
+#		self.__parser_queue__.link(self.__parser__)
 		self.__parser__.link(self.__h264_tee__)
-		self.__h264_tee__.link(self.__payloader_queue__)
-		self.__payloader_queue__.link(self.__payloader__)
+		self.__h264_tee__.link(self.__payloader__)
+#		self.__payloader_queue__.link(self.__payloader__)
 		self.__payloader__.link(self.__rtsp_tee__)
-		self.__rtsp_tee__.link(self.__sink_queue__)
-		self.__sink_queue__.link(self.__sink__)
+		self.__rtsp_tee__.link(self.__sink__)
+#		self.__sink_queue__.link(self.__sink__)
 		
 		self.bus = self.__pipeline__.get_bus()
 		self.bus.set_sync_handler(self.__on_message__)
@@ -1392,7 +1399,10 @@ class CameraServer(Server):
 		"""
 
 		self.__bitrate__ = bitrate
-		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
+#		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
+		self.__encoder__.set_property(
+			'extra-controls', Gst.Structure.new_from_string(
+				self.__extra_controls__.format(self.__bitrate__)))
 
 
 	def set_sensor_mode(self, sensor_mode):
