@@ -397,8 +397,8 @@ class HTTPSServer(WSGIServer):
 
 		# Controls
 
-		if 'restart' in req.params:
-			self.__camera_server__.restart()
+		if 'logging_level' in req.params:
+			self.__camera_server__.set_logging_level(int(req.params['logging_level']))
 		if 'stats' in req.params:
 			self.__camera_server__.set_stats(int(req.params['stats'],16))
 		if 'rtsp' in req.params:
@@ -406,7 +406,7 @@ class HTTPSServer(WSGIServer):
 		if 'record' in req.params:
 			self.__camera_server__.set_record(req.params['record'] == '1')
 		if 'format' in req.params:
-			self.__camera_server__.set_format(int(req.params['format']))
+			self.__camera_server__.set_format(req.params['format'] == '1')
 		if 'max_files' in req.params:
 			self.__camera_server__.set_max_files(int(req.params['max_files']))
 		if 'max_size_bytes' in req.params:
@@ -417,11 +417,13 @@ class HTTPSServer(WSGIServer):
 				int(req.params['max_size_time']))
 		if 'persistent' in req.params:
 			self.__camera_server__.set_persistent(int(req.params['persistent']))
-		if 'logging_level' in req.params:
-			self.__camera_server__.set_logging_level(int(req.params['logging_level']))
+		if 'continuation' in req.params:
+			self.__camera_server__.set_continuation(req.params['continuation'] == '1')
 		if 'media' in req.params:
 			resp.body = (self.__camera_server__.get_media())
 			return
+		if 'restart' in req.params:
+			self.__camera_server__.restart()
 		if 'remove' in req.params:
 			self.__camera_server__.remove(req.params['remove'])
 			resp.body = (self.__camera_server__.get_media())
@@ -453,10 +455,10 @@ class CameraServer(Server):
 		self.__image_effect_lock__ = threading.Lock()
 		with picamera.PiCamera() as camera:
 			self.__model__ = camera.revision
-		self.__fragment_id__ = 0
+		#self.__fragment_id__ = 0
 		self.__stats_id__ = 0
-		self.__watchdog__ = False
-		self.__detect_freeze__ = True
+		#self.__watchdog__ = False
+		#self.__detect_freeze__ = True
 		self.__extra_controls__ = 'encode,frame_level_rate_control_enable=1,\
 			h264_profile=0,h264_level=14,video_bitrate={}'
 
@@ -468,59 +470,164 @@ class CameraServer(Server):
 		except:
 			logging.warning("'camera.json' not found")
 
-		if parameters is not None and parameters['persistent'] == 1:
+		if parameters is not None and 'persistent' in parameters and \
+			parameters['persistent'] == 1:
 
 			logging.info("Loading parameters from 'camera.json'")
 			
 			# Quality
 
-			self.__width__ = parameters['width']
-			self.__height__ = parameters['height']
-			self.__framerate__ = parameters['framerate']
-			self.__bitrate__ = parameters['bitrate']
-			self.__sensor_mode__ = parameters['sensor_mode']
+			if 'width' in parameters:
+				self.__width__ = parameters['width']
+			else:
+				self.__width__ = 800
+			if 'height' in parameters:
+				self.__height__ = parameters['height']
+			else:
+				self.__height__ = 608
+			if 'framerate' in parameters:
+				self.__framerate__ = parameters['framerate']
+			else:
+				self.__framerate__ = 30
+			if 'bitrate' in parameters:
+				self.__bitrate__ = parameters['bitrate']
+			else:
+				self.__bitrate__ = 3000000
+			if 'sensor_mode' in parameters:
+				self.__sensor_mode__ = parameters['sensor_mode']
+			else:
+				self.__sensor_mode__ = 0
 
 			# Effects	
 
-			self.__brightness__ = parameters['brightness']
-			self.__contrast__ = parameters['contrast']
-			self.__saturation__ = parameters['saturation']
-			self.__sharpness__ = parameters['sharpness']
-			self.__drc__ = parameters['drc']
-			self.__image_effect__ = parameters['image_effect']
-			self.__awb_mode__ = parameters['awb_mode']
-			self.__awb_gain_blue__ = parameters['awb_gain_blue']
-			self.__awb_gain_red__ = parameters['awb_gain_red']
+			if 'brightness' in parameters:
+				self.__brightness__ = parameters['brightness']
+			else:
+				self.__brightness__ = 50
+			if 'contrast' in parameters:
+				self.__contrast__ = parameters['contrast']
+			else:
+				self.__contrast__ = 0
+			if 'saturation' in parameters:
+				self.__saturation__ = parameters['saturation']
+			else:
+				self.__saturation__ = 0
+			if 'sharpness' in parameters:
+				self.__sharpness__ = parameters['sharpness']
+			else:
+				self.sharpness = 0
+			if 'drc' in parameters:
+				self.__drc__ = parameters['drc']
+			else:
+				self.__drc = 0
+			if 'image_effect' in parameters:
+				self.__image_effect__ = parameters['image_effect']
+			else:
+				self.__image_effect__ = 0
+			if 'awb_mode' in parameters:
+				self.__awb_mode__ = parameters['awb_mode']
+			else:
+				self.__awb_mode__ = 1
+			if 'awb_gain_blue' in parameters:
+				self.__awb_gain_blue__ = parameters['awb_gain_blue']
+			else:
+				self.__awb_gain_blue__ = 0
+			if 'awb_gain_red' in parameters:
+				self.__awb_gain_red__ = parameters['awb_gain_red']
+			else:
+				self.__awb_gain_red__ = 0
 
 			# Settings
 
-			self.__exposure_mode__ = parameters['exposure_mode']
-			self.__metering_mode__ = parameters['metering_mode']
-			self.__exposure_compensation__ = parameters['exposure_compensation']
-			self.__iso__ = parameters['iso']
-			self.__shutter_speed__ = parameters['shutter_speed']
-			self.__video_stabilisation__ = \
-				(parameters['video_stabilisation'] == 1)
+			if 'exposure_mode' in parameters:
+				self.__exposure_mode__ = parameters['exposure_mode']
+			else:
+				self.__exposure_mode__ = 1
+			if 'metering_mode' in parameters:
+				self.__metering_mode__ = parameters['metering_mode']
+			else:
+				self.__metering_mode__ = 0
+			if 'exposure_compensation' in parameters:
+				self.__exposure_compensation__ = \
+					parameters['exposure_compensation']
+			else:
+				self.__exposure_compensation__ = 0
+			if 'iso' in parameters:
+				self.__iso__ = parameters['iso']
+			else:
+				self.__iso__ = 0
+			if 'shutter_speed' in parameters:
+				self.__shutter_speed__ = parameters['shutter_speed']
+			else:
+				self.__shutter_speed__ = 0
+			if 'video_stabilisation' in parameters:
+				self.__video_stabilisation__ = \
+					(parameters['video_stabilisation'] == 1)
+			else:
+				self.__video_stabilisation__ = False
 
 			# Orientation
 
-			self.__rotation__ = parameters['rotation']
-			self.__hflip__ = (parameters['hflip'] == 1)
-			self.__vflip__ = (parameters['vflip'] == 1)
-			self.__video_direction__ = parameters['video_direction']
-			self.__logging_level__ = parameters['logging_level']
-
+			if 'rotation' in parameters:
+				self.__rotation__ = parameters['rotation']
+			else:
+				self.__rotation__ = 0
+			if 'hflip' in parameters:
+				self.__hflip__ = (parameters['hflip'] == 1)
+			else:
+				self.__hflip__ = False
+			if 'vflip' in parameters:
+				self.__vflip__ = (parameters['vflip'] == 1)
+			else:
+				self.__vflip__ = False
+			if 'video_direction' in parameters:
+				self.__video_direction__ = parameters['video_direction']
+			else:
+				self.__video_direction__ = 0
+	
 			# Controls
 
-			self.__stats__ = int(parameters['stats'], 16)
-			self.__rtsp__ = (parameters['rtsp'] == 1)
-			self.__record__ = (parameters['record'] == 1)
-			self.__format__ = parameters['format']
-			self.__max_files__ = parameters['max_files']
-			self.__max_size_bytes__ = parameters['max_size_bytes']
-			self.__max_size_time__ = parameters['max_size_time']
+			if 'logging_level' in parameters:
+				self.__logging_level__ = parameters['logging_level']
+			else:
+				self.__logging_level__ = 0
+			if 'stats' in parameters:
+				self.__stats__ = int(parameters['stats'], 16)
+			else:
+				self.__stats__ = 0x00000000
+			if 'rtsp' in parameters:
+				self.__rtsp__ = (parameters['rtsp'] == 1)
+			else:
+				self.__rtsp__ = False
+			if 'record' in parameters:
+				self.__record__ = (parameters['record'] == 1)
+			else:
+				self.__record__ = False
+			if 'format' in parameters:
+				self.__format__ = (parameters['format'] == 1)
+			else:
+				self.__format__ = False
+			if 'max_files' in parameters:
+				self.__max_files__ = parameters['max_files']
+			else:
+				self.__max_files__ = 0
+			if 'max_size_bytes' in parameters:
+				self.__max_size_bytes__ = parameters['max_size_bytes']
+			else:
+				self.__max_size_bytes__ = 0
+			if 'max_size_time' in parameters:
+				self.__max_size_time__ = parameters['max_size_time']
+			else:
+				self.__max_size_time__ = 0
+			if 'continuation' in parameters:
+				self.__continuation__ = (parameters['continuation'] == 1)
+			else:
+				self.__continuation__ = False
+			if self.__continuation__:
+				self.__fragment_id__ = parameters['fragment_id']
+			else:
+				self.__fragment_id__ = 0
 			self.__persistent__ = (parameters['persistent'] == 1)
-			self.__logging_level__ = parameters['logging_level']
 		
 		else:
 		
@@ -551,7 +658,7 @@ class CameraServer(Server):
 			self.__exposure_compensation__ = 0
 			self.__iso__ = 0
 			self.__shutter_speed__ = 0
-			# TODO: Change it to True
+			# TODO(marcin.sielski): Change it to True
 			self.__video_stabilisation__ = False
 
 			# Orientation
@@ -563,15 +670,18 @@ class CameraServer(Server):
 
 			# Controls
 
+			self.__logging_level__ = 0
 			self.__stats__ = 0x00000000
 			self.__rtsp__ = False
 			self.__record__ = False
-			self.__format__ = 0
+			self.__format__ = False
 			self.__max_files__ = 0
 			self.__max_size_bytes__ = 0
 			self.__max_size_time__ = 0
+			self.__fragment_id__ = 0
+			self.__continuation__ = False
 			self.__persistent__ = False
-			self.__logging_level__ = 0
+			
 
 		self.init()
 
@@ -655,15 +765,17 @@ class CameraServer(Server):
 
 				# Controls
 
+				'logging_level': int(self.__logging_level__),
 				'stats': '{0:#0{1}x}'.format(self.__stats__,10),
 				'rtsp': int(self.__rtsp__),
 				'record': int(self.__record__),
-				'format': self.__format__,
+				'format': int(self.__format__),
 				'max_files': self.__max_files__,
 				'max_size_bytes': self.__max_size_bytes__,
 				'max_size_time': self.__max_size_time__,
 				'persistent': int(self.__persistent__),
-				'logging_level': int(self.__logging_level__)
+				'fragment_id': self.__fragment_id__,
+				'continuation': int(self.__continuation__)
 			},
 
 			sort_keys=True)
@@ -2534,7 +2646,7 @@ class CameraServer(Server):
 		Set format of recorded video file
 
 		Args:
-			format (int): format of recorded video file
+			format (bool): format of recorded video file
 		"""
 
 		function_name = "'" + threading.currentThread().name + "'." +\
@@ -2621,6 +2733,23 @@ class CameraServer(Server):
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": persistent=" + str(persistent))
 		self.__persistent__ = persistent
+		logging.debug(function_name + ": exit")
+
+
+	def set_continuation(self, continuation):
+
+		"""
+		Set configuration continuation
+
+		Args:
+			continuation (bool): True if recording shall continuation from last
+			    fragment id, False otherwise
+		"""
+
+		function_name = "'" + threading.currentThread().name + "'." +\
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": continuation=" + str(continuation))
+		self.__continuation__ = continuation
 		logging.debug(function_name + ": exit")
 
 

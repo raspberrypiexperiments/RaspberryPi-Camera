@@ -867,6 +867,7 @@ function display(data) {
 
 	// Controls
 
+	$('#logging_level').val(data.logging_level);
 	$('#stats').val(data.stats);
 	if (data.stats == '0x00000000' || data.stats == '0x0000040c') {
 		$('#stats').removeClass('active');
@@ -906,7 +907,16 @@ function display(data) {
 	$('#max_files').val(data.max_files);
 	$('#max_size_bytes').val(data.max_size_bytes);
 	$('#max_size_time').val(data.max_size_time);
-	$('#persistent').val(data.persistent);
+	$('#continuation').val(data.continuation);
+	if (data.continuation == '0') {
+		$('#continuation').removeClass('active');
+		$('#continuation').removeClass('btn-light');
+		$('#continuation').addClass('btn-dark');
+	} else {
+		$('#continuation').addClass('active');
+		$('#continuation').removeClass('btn-dark');
+		$('#continuation').addClass('btn-light');
+	}	$('#persistent').val(data.persistent);
 	if (data.persistent == '0') {
 		$('#persistent').removeClass('active');
 		$('#persistent').removeClass('btn-light');
@@ -916,7 +926,6 @@ function display(data) {
 		$('#persistent').removeClass('btn-dark');
 		$('#persistent').addClass('btn-light');
 	}
-	$('#logging_level').val(data.logging_level);
 }
 
 function change(parameter) {
@@ -1007,6 +1016,7 @@ function change(parameter) {
 		case 'vflip':
 		case 'rtsp':
 		case 'record':
+		case 'continuation':
 		case 'persistent':
 			if ($('#'+parameter).val() == '0') {
 				$('#'+parameter).val('1');
