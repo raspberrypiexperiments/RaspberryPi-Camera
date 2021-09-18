@@ -132,6 +132,24 @@ redeploy:
 	sleep 3 
 	sudo systemctl status camera.service
 
+swapon:
+	sudo cp /etc/dphys-swapfile.bak /etc/dphys-swapfile
+	sudo dphys-swapfile setup
+	sudo dphys-swapfile swapon
+
+swapoff:
+	sudo cp /etc/dphys-swapfile dphys-swapfile.bak
+	sudo bash -c "echo 'CONF_SWAPSIZE=0' > /etc/dphys-swapfile"
+	sudo dphys-swapfile swapoff
+
 swap:
 	sudo bash -c "echo 3 >'/proc/sys/vm/drop_caches' && sudo dphys-swapfile swapoff && sudo dphys-swapfile swapon && printf '\n%s\n' 'Ram-cache and Swap Cleared'"
 	
+status:
+	sudo systemctl status camera
+
+stop:
+	sudo systemctl stop camera
+
+run:
+	python3 src/camera.py

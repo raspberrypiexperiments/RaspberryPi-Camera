@@ -338,12 +338,12 @@ $(document).ready(function() {
 									.browser === "firefox" ||
 									Janus.webRTCAdapter.browserDetails
 									.browser === "safari")) {
-									$('#curbitrate').removeClass('hide').show();
+									$('#curbitrate').removeClass('hide')
 									bitrateTimer = setInterval(function() {
 										// Display updated bitrate, if supported
 										var bitrate = streaming.getBitrate();
 										$('#curbitrate').text(bitrate
-											.replace('kbits/sec', 'Kbps'));
+												.replace('kbits/sec', 'Kbps'));
 										// Check if the resolution changed too
 										var width = $("#remotevideo").get(0)
 										.videoWidth;
@@ -945,7 +945,7 @@ function change(parameter) {
 			fetch(url).then(response => response.json())
 				.then(data => {
 					Janus.log(data);
-					$('#space').removeClass('hide').text(data[0] + ' GiB');
+					$('#space').removeClass('hide').text(data[0][0] + ' GiB');
 					let disabled = '';
 					if (data.length == 1) {
 						disabled = 'disabled';
@@ -958,29 +958,32 @@ function change(parameter) {
 						'><i class="fas fa-trash-alt"></i></button>');
 					let folderHtml = '';
 					for (let i = 1; i < data.length; i++) {
-						let id = data[i].replace('.mkv','').replace('.mp4','');
-						folderHtml += '<button type="button" \
-						onclick="window.open(\'media/' + data[i] + 
+						let id = data[i][0].replace('.mkv','')
+						.replace('.mp4','');
+						folderHtml += '<div id="open_' + id + '">' +
+						data[i][1] + '<button type="button" \
+						onclick="window.open(\'media/' + data[i][0] + 
 						'\')" class="btn btn-dark btn-sm btn-outline-light" \
-						role="button" id="open_' + id + '">'+data[i]+'</button>\
+						role="button">'+data[i][0]+'</button>\
 						<button type="button" class="btn btn-dark bt-sm" \
-						id="remove_' + id + '"><i class="fas fa-trash-alt"></i>\
-						</button>';
+						id="remove_' + id + '"><i class="fas fa-trash-alt"> \
+						</i></button></div>';
 
 					}
 					$('#folder').html(folderHtml);
 					for (let i = 1; i < data.length; i++) {
-						let id = data[i].replace('.mkv','').replace('.mp4','');
+						let id = data[i][0].replace('.mkv','')
+						.replace('.mp4','');
 						$('#remove_'+id).click(function() {
 							let url = 
 							'https://' + window.location.hostname + ':8888';
-							url = url.concat('/?remove=' + data[i]);
+							url = url.concat('/?remove=' + data[i][0]);
 							fetch(url).then(response => response.json())
 								.then(result => {
 									Janus.log(result);
 									$('#space').text(result[0] + ' GiB');
 									if (result.find(filename => filename == 
-										data[i]) == undefined) {
+										data[i][0]) == undefined) {
 										$(this).remove();
 										$('#open_'+id).remove();
 									}
@@ -1000,7 +1003,7 @@ function change(parameter) {
 			fetch(url).then(response => response.json())
 			.then(data => {
 				Janus.log(data);
-				$('#space').text(data[0] + ' GiB');
+				$('#space').text(data[0][0] + ' GiB');
 				if (data.length == 1) {
 					$('#remove').attr('disabled', true).unbind('click');
 					$('#folder').html('');

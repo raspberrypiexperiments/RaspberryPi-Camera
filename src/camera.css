@@ -66,10 +66,10 @@ SOFTWARE.
     width: auto;
 }
 
-.badge
+/*.badge
 {
-    display: none;
-}
+    display: inline-block !important;
+}*/
 
 .btn
 {

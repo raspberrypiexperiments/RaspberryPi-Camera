@@ -50,6 +50,7 @@ import shutil
 import psutil
 from gpiozero import DiskUsage, CPUTemperature
 import subprocess
+import datetime
 
 
 def name(obj):
@@ -621,6 +622,8 @@ class CameraServer(Server):
 				self.__max_size_time__ = 0
 			if 'continuation' in parameters:
 				self.__continuation__ = (parameters['continuation'] == 1)
+				if self.__continuation__:
+					self.__record__ = True
 			else:
 				self.__continuation__ = False
 			if self.__continuation__:
@@ -781,6 +784,15 @@ class CameraServer(Server):
 			sort_keys=True)
 
 
+	def __get_key__(self, e):
+		
+		"""
+		Obtain key
+		"""
+
+		return e[0]
+
+
 	def get_media(self):
 
 		"""
@@ -792,12 +804,13 @@ class CameraServer(Server):
 
 		media = []
 		_, _, free = shutil.disk_usage('/')
-		media.append(str(free // (2**30)))
+		media.append([str(free // (2**30))])
 		_, _, filenames = next(os.walk('.'))	
 		for filename in filenames:
 			if filename.endswith('.mkv') or filename.endswith('.mp4'):
-				media.append(filename)
-		media.sort()
+				media.append(
+					[filename,  datetime.datetime.fromtimestamp(os.path.getmtime(filename)).strftime("%Y-%m-%d, %H:%M")])
+		media.sort(key=self.__get_key__)
 		return json.dumps(media, sort_keys=True)
 
 
@@ -1002,7 +1015,7 @@ class CameraServer(Server):
 		Start Camera Server
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		logging.info(name(self) + " started")
@@ -1067,7 +1080,7 @@ class CameraServer(Server):
 		Callback function executed on change media effect to hatch
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		self.set_image_effect(10)
 		self.__image_effect_lock__.release()
@@ -1082,7 +1095,7 @@ class CameraServer(Server):
 		Stop Camera Server
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		if not self.__record__ and self.__stats__ == 0x0000040C:
@@ -1091,6 +1104,7 @@ class CameraServer(Server):
 			logging.info("Writing parameters to 'camera.json' file")
 			with open('camera.json', 'w') as config:
 				config.write(self.get_parameters())
+			os.sync()
 		else:
 			parameters = None
 			try:
@@ -1163,7 +1177,7 @@ class CameraServer(Server):
 			bool: False to indicate execute once
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		if self.__error_lock__.locked():
@@ -1182,7 +1196,7 @@ class CameraServer(Server):
 			bool: False to indicate execute once
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		# NOTE(marcin.sielski): We are under error condition so try to restart 
@@ -1207,7 +1221,7 @@ class CameraServer(Server):
 			bool: False to indicate execute only once
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		if self.__file_queue__ is not None:
@@ -1225,7 +1239,7 @@ class CameraServer(Server):
 		if self.__file_sink__ is not None:
 			self.__file_sink__.set_state(Gst.State.NULL)
 			self.__file_sink__ = None
-		os.sync()
+		self.__on_store__()
 		if (self.__source__.get_property('annotation-mode') ==	0x0000040C):
 			self.__source__.set_property('annotation-mode', 0x00000000)
 		logging.info("Recording stopped")
@@ -1257,7 +1271,7 @@ class CameraServer(Server):
 			BusSyncReply: with decision what to do further with the message
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		t = message.type
 		logging.debug(function_name + ": "+str(t))
@@ -2011,7 +2025,7 @@ class CameraServer(Server):
 		Callback function executed in the background to collect statistics
 		"""
 		
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
@@ -2069,7 +2083,7 @@ class CameraServer(Server):
 			PadProbeReturn: DROP data in data probes
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		pad.remove_probe(info.id)
@@ -2123,7 +2137,7 @@ class CameraServer(Server):
 			safe (bool): indicate if function is executed in safe context
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(
 			function_name + ": rtsp=" + str(rtsp) + ", safe=" + str(safe))
@@ -2166,13 +2180,30 @@ class CameraServer(Server):
 
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		sinkpad = self.__file_queue__.get_static_pad("src").get_peer()
 		logging.info("Pushing EOS event on pad " + sinkpad.name)
 		self.__pipeline__.set_property("message-forward", True)
 		sinkpad.send_event(Gst.Event.new_eos())
+		logging.debug(function_name + ": exit")
+
+
+	def __on_store__(self):
+
+		"""
+		Store data on disk callback.
+		"""
+
+		function_name = "'" + threading.currentThread().name + "'." + \
+			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+		logging.debug(function_name + ": entry")
+		if self.__persistent__:
+			logging.info("Writing parameters to 'camera.json' file")
+			with open('camera.json', 'w') as config:
+				config.write(self.get_parameters())
+		os.sync()
 		logging.debug(function_name + ": exit")
 
 
@@ -2190,7 +2221,7 @@ class CameraServer(Server):
 			str: file name
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": fragment_id=" + str(fragment_id))
 		if self.__format__:
@@ -2200,6 +2231,7 @@ class CameraServer(Server):
 			result = 'v_' + str(self.__width__) + 'x' + str(self.__height__) + \
 				'_H264_{0:0{1}}.mp4'.format(fragment_id, 2)
 		self.__fragment_id__ = fragment_id + 1
+		GLib.timeout_add_seconds(0, self.__on_store__)
 		logging.debug(function_name + ": return " + result)
 		return result
 
@@ -2213,7 +2245,7 @@ class CameraServer(Server):
 	# 		queue (GstQueue): queue
 	# 	"""
 
-	# 	function_name = "'" + threading.currentThread().name + "'." +\
+	# 	function_name = "'" + threading.currentThread().name + "'." + \
 	# 		type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 	# 	logging.debug(function_name + ": entry")
 	# 	self.__raw_framerate__ = self.__raw_framerate__ - 1
@@ -2240,7 +2272,7 @@ class CameraServer(Server):
 			PadProbeReturn: DROP data in data probes
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		# if this is record request
@@ -2397,7 +2429,7 @@ class CameraServer(Server):
 			safe (bool): indicate if function is executed from safe context
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(
 			function_name + ": record=" + str(record) + ", safe=" + str(safe))
@@ -2459,7 +2491,7 @@ class CameraServer(Server):
 			filename (str): name of the file to remove
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 
 		logging.debug(function_name + ": filename=" + str(filename))
@@ -2495,7 +2527,7 @@ class CameraServer(Server):
 			safe (bool): indicate if function is executed in the safe context
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": safe=" + str(safe))
 		# if function is executed in unsafe context
@@ -2649,7 +2681,7 @@ class CameraServer(Server):
 			format (bool): format of recorded video file
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": format="+str(format))
 		self.__format__ = format
@@ -2670,7 +2702,7 @@ class CameraServer(Server):
 			max_files (int): maximum number of recorded video files
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": max_files=" + str(max_files))
 		self.__max_files__ = max_files
@@ -2689,7 +2721,7 @@ class CameraServer(Server):
 				bytes
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": max_size_bytes=" + str(max_size_bytes))
 		self.__max_size_bytes__ = max_size_bytes
@@ -2709,7 +2741,7 @@ class CameraServer(Server):
 				nanoseconds
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": max_size_time=" + str(max_size_time))
 		self.__max_size_time__ = max_size_time
@@ -2729,7 +2761,7 @@ class CameraServer(Server):
 				False otherwise
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": persistent=" + str(persistent))
 		self.__persistent__ = persistent
@@ -2746,7 +2778,7 @@ class CameraServer(Server):
 			    fragment id, False otherwise
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": continuation=" + str(continuation))
 		self.__continuation__ = continuation
@@ -2762,7 +2794,7 @@ class CameraServer(Server):
 			logging_level (int): logging level
 		"""	
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": logging_level=" + str(logging_level))
 		self.__logging_level__ = logging_level
@@ -2881,7 +2913,7 @@ class CameraService:
 		Start servers
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		logging.info(name(self) + " started")
@@ -2901,7 +2933,7 @@ class CameraService:
 		Stop servers
 		"""
 
-		function_name = "'" + threading.currentThread().name + "'." +\
+		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
 		if self.__running__:
