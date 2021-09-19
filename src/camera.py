@@ -923,11 +923,11 @@ class CameraServer(Server):
 
 #		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
 #		self.__parser_queue__.set_property(
-#			'max-size-buffers', 3*self.__framerate__*200)
+#			'max-size-buffers', 0)
 #		self.__parser_queue__.set_property(
 #			'max-size-bytes', 
-#			3*self.__framerate__*self.__width__*self.__height__)
-#		self.__parser_queue__.set_property('max-size-time', 3*1000000000)
+#			0)
+#		self.__parser_queue__.set_property('max-size-time', 0)
 		# NOTE(marcin.sielski): Not confirmed if the code below can detect
 		# camera source stuck. Camera source stuck may be potentially caused by
 		# environmental factors such as incorrect power supply or high cpu load
@@ -945,11 +945,11 @@ class CameraServer(Server):
 #		self.__payloader_queue__ = Gst.ElementFactory.make(
 #			'queue', 'payloader-queue')
 #		self.__payloader_queue__.set_property(
-#			'max-size-buffers', 3*self.__framerate__*200)
+#			'max-size-buffers', 0)
 #		self.__payloader_queue__.set_property(
 #			'max-size-bytes', 
-#			3*self.__framerate__*self.__width__*self.__height__)
-#		self.__payloader_queue__.set_property('max-size-time', 3*1000000000)
+#			0)
+#		self.__payloader_queue__.set_property('max-size-time', 0)
 
 		self.__payloader__ = Gst.ElementFactory.make('rtph264pay', 'payloader')
 		self.__payloader__.set_property('config-interval', -1)
@@ -958,11 +958,12 @@ class CameraServer(Server):
 
 		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
 		self.__sink_queue__.set_property(
-			'max-size-buffers', 3*self.__framerate__*200)
+			'max-size-buffers', 0)
+#			'max-size-buffers', 3*self.__framerate__*200)
 		self.__sink_queue__.set_property(
-			'max-size-bytes', 
-			3*self.__framerate__*self.__width__*self.__height__)
-		self.__sink_queue__.set_property('max-size-time', 3*1000000000)
+			'max-size-bytes', 0)
+#			3*self.__framerate__*self.__width__*self.__height__)
+		self.__sink_queue__.set_property('max-size-time', 0)#3*1000000000)
 
 		self.__sink__ = Gst.ElementFactory.make('udpsink', 'sink')
 		self.__sink__.set_property('host', '127.0.0.1')
@@ -2281,11 +2282,11 @@ class CameraServer(Server):
 			pad.remove_probe(info.id)
 			self.__file_queue__ = Gst.ElementFactory.make('queue', 'file-queue')
 			self.__file_queue__.set_property(
-				'max-size-bytes', 
-				3*self.__framerate__*self.__width__*self.__height__)
+				'max-size-bytes', 0)
+#				3*self.__framerate__*self.__width__*self.__height__)
 			self.__file_queue__.set_property(
-				'max-size-buffers',  3*self.__framerate__*200)
-			self.__file_queue__.set_property('max-size-time',  3*1000000000)
+				'max-size-buffers',  0)#3*self.__framerate__*200)
+			self.__file_queue__.set_property('max-size-time',  0)#3*1000000000)
 			if self.__format__:
 				if self.__throughput__ > 0:
 					#self.__file_queue__.set_property('leaky', 1)
