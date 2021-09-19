@@ -460,9 +460,10 @@ class CameraServer(Server):
 		self.__stats_id__ = 0
 		#self.__watchdog__ = False
 		#self.__detect_freeze__ = True
-		self.__extra_controls__ = 'encode,frame_level_rate_control_enable=1,\
-			h264_profile=0,h264_level=14,video_bitrate={}'
-
+		#self.__extra_controls__ = 'encode,frame_level_rate_control_enable=1,\
+		#	h264_profile=0,h264_level=14,video_bitrate={}'
+		self.__extra_controls__ = 'encode,video_bitrate_mode=1,h264_profile=0,\
+			h264_level=11,video_bitrate={},h264_i_frame_period={}'
 		parameters = None
 
 		try:
@@ -911,7 +912,8 @@ class CameraServer(Server):
 		self.__encoder__ = Gst.ElementFactory.make('v4l2h264enc', 'encoder')
 		self.__encoder__.set_property(
 			'extra-controls', Gst.Structure.new_from_string(
-				self.__extra_controls__.format(self.__bitrate__)))
+				self.__extra_controls__.format(self.__bitrate__, 
+				self.__framerate__)))
 
 		self.__encoder_caps__ = Gst.Caps.new_empty_simple('video/x-h264')
 		self.__encoder_caps__.set_value('profile', 'baseline')
