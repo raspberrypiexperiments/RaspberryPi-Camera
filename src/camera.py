@@ -1035,23 +1035,23 @@ class CameraServer(Server):
 		# NOTE(marcin.sielski): For some reason encoder randomly does not start 
 		# with the image effect configured to hatch. Delay setting it up 
 		# by one second.
-		image_effect = self.__image_effect__ 
-		if image_effect == 10:
-			self.set_image_effect(0, False)
+#		image_effect = self.__image_effect__ 
+#		if image_effect == 10:
+#			self.set_image_effect(0, False)
 		self.__pipeline__.set_state(Gst.State.PLAYING)
-		if image_effect == 10:
-			logging.debug(
-				function_name +
-				": self.__image_effect_lock__.acquire(blocking=True)")
-			self.__image_effect_lock__.acquire(blocking=True)
-			GLib.timeout_add_seconds(1, self.__on_image_effect__)
-			logging.debug(
-				function_name +
-				": self.__image_effect_lock__.acquire(blocking=True)")
-			self.__image_effect_lock__.acquire(blocking=True)
-			logging.debug(
-				function_name + ": self.__image_effect_lock__.release()")
-			self.__image_effect_lock__.release()
+#		if image_effect == 10:
+#			logging.debug(
+#				function_name +
+#				": self.__image_effect_lock__.acquire(blocking=True)")
+#			self.__image_effect_lock__.acquire(blocking=True)
+#			GLib.timeout_add_seconds(1, self.__on_image_effect__)
+#			logging.debug(
+#				function_name +
+#				": self.__image_effect_lock__.acquire(blocking=True)")
+#			self.__image_effect_lock__.acquire(blocking=True)
+#			logging.debug(
+#				function_name + ": self.__image_effect_lock__.release()")
+#			self.__image_effect_lock__.release()
 		self.set_stats(self.__stats__)
 		# if streaming is configured
 		if self.__rtsp__:
@@ -1086,19 +1086,19 @@ class CameraServer(Server):
 		logging.debug(function_name + ": exit")
 
 
-	def __on_image_effect__(self):
-
-		"""
-		Callback function executed on change media effect to hatch
-		"""
-
-		function_name = "'" + threading.currentThread().name + "'." + \
-			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-		self.set_image_effect(10)
-		self.__image_effect_lock__.release()
-		logging.debug(
-			function_name +
-			": self.__image_effect_lock__.release()")
+#	def __on_image_effect__(self):
+#
+#		"""
+#		Callback function executed on change media effect to hatch
+#		"""
+#
+#		function_name = "'" + threading.currentThread().name + "'." + \
+#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
+#		self.set_image_effect(10)
+#		self.__image_effect_lock__.release()
+#		logging.debug(
+#			function_name +
+#			": self.__image_effect_lock__.release()")
 
 
 	def stop(self):
@@ -1666,7 +1666,7 @@ class CameraServer(Server):
 		self.__source__.set_property('drc', self.__drc__)
 
 
-	def set_image_effect(self, image_effect, restart=True):
+	def set_image_effect(self, image_effect):
 
 		"""
 		Set image effect filter
@@ -1675,12 +1675,8 @@ class CameraServer(Server):
 			image_effect (int): image effect filter
 		"""
 
-		if self.__image_effect__ == 10 and image_effect != 10 and restart:
-			self.__image_effect__ = image_effect
-			self.restart()
-		else:
-			self.__image_effect__ = image_effect
-			self.__source__.set_property('image-effect', self.__image_effect__)
+		self.__image_effect__ = image_effect
+		self.__source__.set_property('image-effect', self.__image_effect__)
 
 
 	def set_awb_mode(self, awb_mode):
