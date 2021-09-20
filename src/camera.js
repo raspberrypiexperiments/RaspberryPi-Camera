@@ -361,6 +361,7 @@ $(document).ready(function() {
 								$('#waitingvideo').remove();
 								$('#remotevideo').remove();
 								$('#no-video-container').remove();
+								$('#bitrate_mode').attr('disabled', true);
 								$('#bitrate').attr('disabled', true);
 								$('#curbitrate').hide();
 								if(bitrateTimer)
@@ -487,6 +488,7 @@ function stopStream() {
 	streaming.send({ message: body });
 	streaming.hangup();
 	$('#status').empty().hide();
+	$('#bitrate_mode').attr('disabled', true);
 	$('#bitrate').attr('disabled', true);
 	$('#curbitrate').hide();
 	if(bitrateTimer)
@@ -755,6 +757,7 @@ function display(data) {
 	$('#resolution_button').removeClass('hide').show();
 	$('#resolution').removeClass('hide').show();
 
+	$('#bitrate_mode').val(data.bitrate_mode)
 	$('#bitrate').val(data.bitrate);
 	$('#sensor_mode').val(data.sensor_mode);
 	if (data.sensor_mode == '0' || data.sensor_mode == '2' ||

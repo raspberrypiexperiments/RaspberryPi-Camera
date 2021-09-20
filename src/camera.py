@@ -333,6 +333,9 @@ class HTTPSServer(WSGIServer):
 			int(req.params['height']))
 		if 'framerate' in req.params:
 			self.__camera_server__.set_framerate(int(req.params['framerate']))
+		if 'bitrate_mode' in req.params:
+			self.__camera_server__.set_bitrate_mode(
+				int(req.params['bitrate_mode']))
 		if 'bitrate' in req.params:
 			self.__camera_server__.set_bitrate(int(req.params['bitrate']))
 		if 'sensor_mode' in req.params:
@@ -462,7 +465,7 @@ class CameraServer(Server):
 		#self.__detect_freeze__ = True
 		#self.__extra_controls__ = 'encode,frame_level_rate_control_enable=1,\
 		#	h264_profile=0,h264_level=14,video_bitrate={}'
-		self.__extra_controls__ = 'encode,video_bitrate_mode=1,h264_profile=0,\
+		self.__extra_controls__ = 'encode,video_bitrate_mode={},h264_profile=0,\
 			h264_level=11,video_bitrate={},h264_i_frame_period={}'
 		parameters = None
 
@@ -491,6 +494,10 @@ class CameraServer(Server):
 				self.__framerate__ = parameters['framerate']
 			else:
 				self.__framerate__ = 30
+			if 'bitrate_mode' in parameters:
+				self.__bitrate_mode__ = parameters['bitrate_mode']
+			else:
+				self.__bitrate_mode__ = 0
 			if 'bitrate' in parameters:
 				self.__bitrate__ = parameters['bitrate']
 			else:
@@ -640,6 +647,7 @@ class CameraServer(Server):
 			self.__width__ = 800
 			self.__height__ = 608
 			self.__framerate__ = 30
+			self.__bitrate_mode__ = 0
 			self.__bitrate__ = 3000000
 			self.__sensor_mode__ = 0
 
@@ -736,6 +744,7 @@ class CameraServer(Server):
 				'width': self.__width__, 
 				'height': self.__height__, 
 				'framerate': self.__framerate__, 
+				'bitrate_mode': self.__bitrate_mode__,
 				'bitrate': self.__bitrate__,
 				'sensor_mode': self.__sensor_mode__,
 
@@ -912,8 +921,8 @@ class CameraServer(Server):
 		self.__encoder__ = Gst.ElementFactory.make('v4l2h264enc', 'encoder')
 		self.__encoder__.set_property(
 			'extra-controls', Gst.Structure.new_from_string(
-				self.__extra_controls__.format(self.__bitrate__, 
-				self.__framerate__)))
+				self.__extra_controls__.format(self.__bitrate_mode__,
+				self.__bitrate__, self.__framerate__)))
 
 		self.__encoder_caps__ = Gst.Caps.new_empty_simple('video/x-h264')
 		self.__encoder_caps__.set_value('profile', 'baseline')
@@ -1519,6 +1528,19 @@ class CameraServer(Server):
 		self.restart()
 
 
+	def set_bitrate_mode(self, bitrate_mode):
+
+		"""
+		Set desired bitrate mode of the video stream
+
+		Args:
+			bitrate_mode (int): desired bitrate mode of the video stream
+		"""
+
+		self.__bitrate_mode__ = bitrate_mode
+		self.restart()
+
+
 	def set_bitrate(self, bitrate):
 
 		"""
@@ -1529,10 +1551,7 @@ class CameraServer(Server):
 		"""
 
 		self.__bitrate__ = bitrate
-#		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
-		self.__encoder__.set_property(
-			'extra-controls', Gst.Structure.new_from_string(
-				self.__extra_controls__.format(self.__bitrate__)))
+		self.restart()
 
 
 	def set_sensor_mode(self, sensor_mode):

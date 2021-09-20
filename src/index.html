@@ -76,6 +76,11 @@ SOFTWARE.
 									<option value="640x480" id="vga">&nbsp;&nbsp;640x480 4:3</option>
 								</select>	
 							</div>		
+								<button type="button" class="btn btn-lg btn-dark" disabled>Bitrate Mode</button>
+								<select class="form-select form-control-lg bg-dark text-light" aria-label="bitrate_mode" onchange="change('bitrate_mode')" id="bitrate_mode">
+									<option value="1">Constant Bitrate</option>
+									<option value="0" selected>Variable Bitrate</option>
+								</select>
 								<button type="button" class="btn btn-lg btn-dark" disabled>Bitrate</button>
 								<select class="form-select form-control-lg bg-dark text-light" aria-label="bitrate" onchange="change('bitrate')" id="bitrate">
 									<option value="5000000">5000000</option>
