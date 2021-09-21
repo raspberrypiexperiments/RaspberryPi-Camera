@@ -708,6 +708,8 @@ class CameraServer(Server):
 		"""
 		
 		os.system('sudo timedatectl set-time @' + str(time))
+		os.system('sudo fake-hwclock')
+		os.sync()
 
 
 	def send_keyframe(self):
@@ -1116,6 +1118,7 @@ class CameraServer(Server):
 			logging.info("Writing parameters to 'camera.json' file")
 			with open('camera.json', 'w') as config:
 				config.write(self.get_parameters())
+			os.system('sudo fake-hwclock')
 			os.sync()
 		else:
 			parameters = None
@@ -2221,6 +2224,7 @@ class CameraServer(Server):
 			logging.info("Writing parameters to 'camera.json' file")
 			with open('camera.json', 'w') as config:
 				config.write(self.get_parameters())
+		os.system('sudo fake-hwclock')
 		os.sync()
 		logging.debug(function_name + ": exit")
 
