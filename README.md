@@ -34,6 +34,8 @@ This repository depends on:
 
 ## Known supported Raspberry Pi
 
+* Raspberry Pi Zero,
+* Raspberry Pi Zero W,
 * Raspberry Pi 3B,
 * Raspberry Pi 4B.
 
@@ -42,9 +44,9 @@ This repository depends on:
 Installation procedure:
 
 ```bash
-~ $ git clone --recurse-submodules -j4 git@github.com:raspberrypiexperiments/RaspberryPi-Camera.git
-~ $ cd RaspberryPi-Camera
-~/RaspberryPi-Camera $ make install
+git clone --recurse-submodules -j$(nproc) https://github.com/raspberrypiexperiments/RaspberryPi-Camera.git
+cd RaspberryPi-Camera
+make install
 ```
 
 ## Uninstallation
@@ -52,7 +54,9 @@ Installation procedure:
 Uninstallation procedure:
 
 ```bash
-~/RaspberryPi-Camera $ make uninstall
+make uninstall
+cd ..
+sudo rm -rf RaspberryPi-Camera
 ```
 
 ## License

@@ -27,7 +27,7 @@ dependencies:
 	sudo apt install npm -y
 	sudo npm -g install n
 	sudo n lts
-	sudo npm i minify -g
+	sudo npm i uglify-js -g
 	pip3 install --user falcon
 	pip3 install --user wsgiserver
 
@@ -59,7 +59,7 @@ install: dependencies config
 	sudo systemctl status httpsserver.service
 	sudo rm -rf /opt/camera/share/camera
 	sudo mkdir -p /opt/camera/share/camera
-	sudo bash -c "minify /opt/janus/share/janus/demos/janus.js > /opt/camera/share/camera/janus.min.js"
+	sudo bash -c "uglifyjs /opt/janus/share/janus/demos/janus.js > /opt/camera/share/camera/janus.min.js"
 	sudo cp src/index.html /opt/camera/share/camera
 	sudo cp src/camera.css /opt/camera/share/camera
 	sudo cp src/camera.js /opt/camera/share/camera
@@ -69,7 +69,7 @@ install: dependencies config
 	cd /opt/camera/share/camera && sudo npm i bootstrap
 	cd /opt/camera/share/camera && sudo npm i bootbox
 	cd /opt/camera/share/camera && sudo npm i @fortawesome/fontawesome-free
-	sudo bash -c "minify /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
+	sudo bash -c "uglifyjs /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
 	if ! patch -R -d / -p1 -s -f --dry-run <src/0001_janus.plugin.streaming.jcfg.patch; then sudo patch -d / -p1 < src/0001_janus.plugin.streaming.jcfg.patch; fi
 	sudo systemctl restart janus.service
 	sleep 3
@@ -110,18 +110,18 @@ redeploy:
 	sudo systemctl status httpsserver.service
 	sudo rm -rf /opt/camera/share/camera
 	sudo mkdir -p /opt/camera/share/camera
-	sudo bash -c "minify /opt/janus/share/janus/demos/janus.js > /opt/camera/share/camera/janus.min.js"
+	sudo bash -c "uglifyjs /opt/janus/share/janus/demos/janus.js > /opt/camera/share/camera/janus.min.js"
 	#sudo cp /opt/janus/share/janus/demos/janus.js /opt/camera/share/camera
-	sudo bash -c "minify src/index.html > /opt/camera/share/camera/index.html"
-	sudo bash -c "minify src/camera.css > /opt/camera/share/camera/camera.css"
-	sudo bash -c "minify src/camera.js > /opt/camera/share/camera/camera.js"
+	sudo bash -c "cp src/index.html /opt/camera/share/camera/index.html"
+	sudo bash -c "cp src/camera.css /opt/camera/share/camera/camera.css"
+	sudo bash -c "uglifyjs src/camera.js > /opt/camera/share/camera/camera.js"
 	sudo cp src/favicon.ico /opt/camera/share/camera
 	cd /opt/camera/share/camera && sudo npm i webrtc-adapter
 	cd /opt/camera/share/camera && sudo npm i jquery
 	cd /opt/camera/share/camera && sudo npm i bootstrap
 	cd /opt/camera/share/camera && sudo npm i bootbox
 	cd /opt/camera/share/camera && sudo npm i @fortawesome/fontawesome-free
-	sudo bash -c "minify /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
+	sudo bash -c "uglifyjs /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
 	sudo cp src/camera.py /opt/camera/bin
 	sudo ln -s /home/pi/camera /opt/camera/share/camera/media
 	sudo systemctl stop camera.service
