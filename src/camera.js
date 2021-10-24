@@ -503,253 +503,378 @@ function display(data) {
 	// Quality
 
 	$('#resolution').val(data.width+'x'+data.height);
-	switch(parseInt(data.sensor_mode, 10)) {
-		case 0: // auto
-			$('#framerate').html(' \
-				<option value="60">60</option> \
-				<option value="55">55</option> \
-				<option value="50">50</option> \
-				<option value="45">45</option> \
-				<option value="40">40</option> \
-				<option value="35">35</option> \
-				<option value="30">30</option> \
-				<option value="25">25</option> \
-				<option value="20">20</option> \
-				<option value="15">15</option> \
-				<option value="10">10</option> \
-				<option value="5">&nbsp;&nbsp;5</option> \
-			');
-			$('#hd').removeClass('hide').show(); // 1280x720 16:9
-			$('#xga').removeClass('hide').show(); // 1024x768 4:3
-			$('#qhd').removeClass('hide').show(); // 960x544 16:9
-			$('#svga').removeClass('hide').show(); // 800x608 4:3
-			$('#wvga').removeClass('hide').show(); // 800x448 16:9
-			$('#vga').removeClass('hide').show(); // 640x480 4:3					
-			break;
-		case 1: // 1920x1080 16:9 0.1-30fps partial
-			$('#framerate').html(' \
-				<option value="30">30</option> \
-				<option value="29">29</option> \
-				<option value="28">28</option> \
-				<option value="27">27</option> \
-				<option value="26">26</option> \
-				<option value="25">25</option> \
-				<option value="24">24</option> \
-				<option value="23">23</option> \
-				<option value="22">22</option> \
-				<option value="21">21</option> \
-				<option value="20">20</option> \
-				<option value="19">19</option> \
-				<option value="18">18</option> \
-				<option value="17">17</option> \
-				<option value="16">16</option> \
-				<option value="15">15</option> \
-				<option value="14">14</option> \
-				<option value="13">13</option> \
-				<option value="12">12</option> \
-				<option value="11">11</option> \
-				<option value="10">10</option> \
-				<option value="9">&nbsp;&nbsp;9</option> \
-				<option value="8">&nbsp;&nbsp;8</option> \
-				<option value="7">&nbsp;&nbsp;7</option> \
-				<option value="6">&nbsp;&nbsp;6</option> \
-				<option value="5">&nbsp;&nbsp;5</option> \
-				<option value="4">&nbsp;&nbsp;4</option> \
-				<option value="3">&nbsp;&nbsp;3</option> \
-				<option value="2">&nbsp;&nbsp;2</option> \
-				<option value="1">&nbsp;&nbsp;1</option> \
-			');
-			$('#hd').removeClass('hide').show(); // 1280x720 16:9
-			$('#xga').addClass('hide').hide(); // 1024x768 4:3
-			$('#qhd').removeClass('hide').show(); // 960x544 16:9
-			$('#svga').addClass('hide').hide(); // 800x608 4:3
-			$('#wvga').removeClass('hide').show(); // 800x448 16:9
-			$('#vga').addClass('hide').hide(); // 640x480 4:3
-			break;
-		case 2: // 3280x2464 4:3 0.1-15fps full
-		case 3: // 3280x2464 4:3 0.1-15fps full
-			$('#framerate').html(' \
-				<option value="15">15</option> \
-				<option value="14">14</option> \
-				<option value="13">13</option> \
-				<option value="12">12</option> \
-				<option value="11">11</option> \
-				<option value="10">10</option> \
-				<option value="9">&nbsp;&nbsp;9</option> \
-				<option value="8">&nbsp;&nbsp;8</option> \
-				<option value="7">&nbsp;&nbsp;7</option> \
-				<option value="6">&nbsp;&nbsp;6</option> \
-				<option value="5">&nbsp;&nbsp;5</option> \
-				<option value="4">&nbsp;&nbsp;4</option> \
-				<option value="3">&nbsp;&nbsp;3</option> \
-				<option value="2">&nbsp;&nbsp;2</option> \
-				<option value="1">&nbsp;&nbsp;1</option> \
-			');
-			$('#hd').addClass('hide').hide(); // 1280x720 16:9
-			$('#xga').removeClass('hide').show(); // 1024x768 4:3
-			$('#qhd').addClass('hide').hide(); // 960x544 16:9
-			$('#svga').removeClass('hide').show(); // 800x608 4:3
-			$('#wvga').addClass('hide').hide(); // 800x448 16:9
-			$('#vga').removeClass('hide').show(); // 640x480 4:3					
-			break;
-		case 4: // 1640x1232 4:3 0.1-40fps full
-			$('#framerate').html(' \
-				<option value="40">40</option> \
-				<option value="39">39</option> \
-				<option value="38">38</option> \
-				<option value="37">37</option> \
-				<option value="36">36</option> \
-				<option value="35">35</option> \
-				<option value="34">34</option> \
-				<option value="33">33</option> \
-				<option value="32">32</option> \
-				<option value="31">31</option> \
-				<option value="30">30</option> \
-				<option value="29">29</option> \
-				<option value="28">28</option> \
-				<option value="27">27</option> \
-				<option value="26">26</option> \
-				<option value="25">25</option> \
-				<option value="24">24</option> \
-				<option value="23">23</option> \
-				<option value="22">22</option> \
-				<option value="21">21</option> \
-				<option value="20">20</option> \
-				<option value="19">19</option> \
-				<option value="18">18</option> \
-				<option value="17">17</option> \
-				<option value="16">16</option> \
-				<option value="15">15</option> \
-				<option value="14">14</option> \
-				<option value="13">13</option> \
-				<option value="12">12</option> \
-				<option value="11">11</option> \
-				<option value="10">10</option> \
-				<option value="9">&nbsp;&nbsp;9</option> \
-				<option value="8">&nbsp;&nbsp;8</option> \
-				<option value="7">&nbsp;&nbsp;7</option> \
-				<option value="6">&nbsp;&nbsp;6</option> \
-				<option value="5">&nbsp;&nbsp;5</option> \
-				<option value="4">&nbsp;&nbsp;4</option> \
-				<option value="3">&nbsp;&nbsp;3</option> \
-				<option value="2">&nbsp;&nbsp;2</option> \
-				<option value="1">&nbsp;&nbsp;1</option> \
-			');
-			$('#hd').addClass('hide').hide(); // 1280x720 16:9
-			$('#xga').removeClass('hide').show(); // 1024x768 4:3
-			$('#qhd').addClass('hide').hide(); // 960x544 16:9
-			$('#svga').removeClass('hide').show(); // 800x608 4:3
-			$('#wvga').addClass('hide').hide(); // 800x448 16:9
-			$('#vga').removeClass('hide').show(); // 640x480 4:3
-			break;
-		case 5: // 1640x922 16:9 0.1-40fps partial
-			$('#framerate').html(' \
-				<option value="40">40</option> \
-				<option value="39">39</option> \
-				<option value="38">38</option> \
-				<option value="37">37</option> \
-				<option value="36">36</option> \
-				<option value="35">35</option> \
-				<option value="34">34</option> \
-				<option value="33">33</option> \
-				<option value="32">32</option> \
-				<option value="31">31</option> \
-				<option value="30">30</option> \
-				<option value="29">29</option> \
-				<option value="28">28</option> \
-				<option value="27">27</option> \
-				<option value="26">26</option> \
-				<option value="25">25</option> \
-				<option value="24">24</option> \
-				<option value="23">23</option> \
-				<option value="22">22</option> \
-				<option value="21">21</option> \
-				<option value="20">20</option> \
-				<option value="19">19</option> \
-				<option value="18">18</option> \
-				<option value="17">17</option> \
-				<option value="16">16</option> \
-				<option value="15">15</option> \
-				<option value="14">14</option> \
-				<option value="13">13</option> \
-				<option value="12">12</option> \
-				<option value="11">11</option> \
-				<option value="10">10</option> \
-				<option value="9">&nbsp;&nbsp;9</option> \
-				<option value="8">&nbsp;&nbsp;8</option> \
-				<option value="7">&nbsp;&nbsp;7</option> \
-				<option value="6">&nbsp;&nbsp;6</option> \
-				<option value="5">&nbsp;&nbsp;5</option> \
-				<option value="4">&nbsp;&nbsp;4</option> \
-				<option value="3">&nbsp;&nbsp;3</option> \
-				<option value="2">&nbsp;&nbsp;2</option> \
-				<option value="1">&nbsp;&nbsp;1</option> \
-			');
-			$('#hd').removeClass('hide').show(); // 1280x720 16:9
-			$('#xga').addClass('hide').hide(); // 1024x768 4:3
-			$('#qhd').removeClass('hide').show(); // 960x544 16:9
-			$('#svga').addClass('hide').hide(); // 800x608 4:3
-			$('#wvga').removeClass('hide').show(); // 800x448 16:9
-			$('#vga').addClass('hide').hide(); // 640x480 4:3
-			break;
-		case 6: // 1280x720 16:9 40-90fps partial
-			if ($('#resolution').val() == '1280x720') {
+	if (data.model == 'ov5647' || data.model == 'imx219') {
+		switch(parseInt(data.sensor_mode, 10)) {
+			case 0: // auto
 				$('#framerate').html(' \
 					<option value="60">60</option> \
 					<option value="55">55</option> \
 					<option value="50">50</option> \
 					<option value="45">45</option> \
 					<option value="40">40</option> \
+					<option value="35">35</option> \
+					<option value="30">30</option> \
+					<option value="25">25</option> \
+					<option value="20">20</option> \
+					<option value="15">15</option> \
+					<option value="10">10</option> \
+					<option value="5">&nbsp;&nbsp;5</option> \
 				');
-			} else {
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').removeClass('hide').show(); // 1280x720 16:9
+				$('#xga').removeClass('hide').show(); // 1024x768 4:3
+				$('#qhd').removeClass('hide').show(); // 960x544 16:9
+				$('#svga').removeClass('hide').show(); // 800x608 4:3
+				$('#wvga').removeClass('hide').show(); // 800x448 16:9
+				$('#vga').removeClass('hide').show(); // 640x480 4:3					
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+			case 1: // 1920x1080 16:9 0.1-30fps partial
 				$('#framerate').html(' \
-					<option value="90">90</option> \
-					<option value="85">85</option> \
-					<option value="80">80</option> \
-					<option value="75">75</option> \
-					<option value="70">70</option> \
-					<option value="65">65</option> \
+					<option value="30">30</option> \
+					<option value="29">29</option> \
+					<option value="28">28</option> \
+					<option value="27">27</option> \
+					<option value="26">26</option> \
+					<option value="25">25</option> \
+					<option value="24">24</option> \
+					<option value="23">23</option> \
+					<option value="22">22</option> \
+					<option value="21">21</option> \
+					<option value="20">20</option> \
+					<option value="19">19</option> \
+					<option value="18">18</option> \
+					<option value="17">17</option> \
+					<option value="16">16</option> \
+					<option value="15">15</option> \
+					<option value="14">14</option> \
+					<option value="13">13</option> \
+					<option value="12">12</option> \
+					<option value="11">11</option> \
+					<option value="10">10</option> \
+					<option value="9">&nbsp;&nbsp;9</option> \
+					<option value="8">&nbsp;&nbsp;8</option> \
+					<option value="7">&nbsp;&nbsp;7</option> \
+					<option value="6">&nbsp;&nbsp;6</option> \
+					<option value="5">&nbsp;&nbsp;5</option> \
+					<option value="4">&nbsp;&nbsp;4</option> \
+					<option value="3">&nbsp;&nbsp;3</option> \
+					<option value="2">&nbsp;&nbsp;2</option> \
+					<option value="1">&nbsp;&nbsp;1</option> \
+				');
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').removeClass('hide').show(); // 1280x720 16:9
+				$('#xga').addClass('hide').hide(); // 1024x768 4:3
+				$('#qhd').removeClass('hide').show(); // 960x544 16:9
+				$('#svga').addClass('hide').hide(); // 800x608 4:3
+				$('#wvga').removeClass('hide').show(); // 800x448 16:9
+				$('#vga').addClass('hide').hide(); // 640x480 4:3
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+			case 2: // 3280x2464 4:3 0.1-15fps full
+			case 3: // 3280x2464 4:3 0.1-15fps full
+				$('#framerate').html(' \
+					<option value="15">15</option> \
+					<option value="14">14</option> \
+					<option value="13">13</option> \
+					<option value="12">12</option> \
+					<option value="11">11</option> \
+					<option value="10">10</option> \
+					<option value="9">&nbsp;&nbsp;9</option> \
+					<option value="8">&nbsp;&nbsp;8</option> \
+					<option value="7">&nbsp;&nbsp;7</option> \
+					<option value="6">&nbsp;&nbsp;6</option> \
+					<option value="5">&nbsp;&nbsp;5</option> \
+					<option value="4">&nbsp;&nbsp;4</option> \
+					<option value="3">&nbsp;&nbsp;3</option> \
+					<option value="2">&nbsp;&nbsp;2</option> \
+					<option value="1">&nbsp;&nbsp;1</option> \
+				');
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').addClass('hide').hide(); // 1280x720 16:9
+				$('#xga').removeClass('hide').show(); // 1024x768 4:3
+				$('#qhd').addClass('hide').hide(); // 960x544 16:9
+				$('#svga').removeClass('hide').show(); // 800x608 4:3
+				$('#wvga').addClass('hide').hide(); // 800x448 16:9
+				$('#vga').removeClass('hide').show(); // 640x480 4:3					
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+			case 4: // 1640x1232 4:3 0.1-40fps full
+				$('#framerate').html(' \
+					<option value="40">40</option> \
+					<option value="39">39</option> \
+					<option value="38">38</option> \
+					<option value="37">37</option> \
+					<option value="36">36</option> \
+					<option value="35">35</option> \
+					<option value="34">34</option> \
+					<option value="33">33</option> \
+					<option value="32">32</option> \
+					<option value="31">31</option> \
+					<option value="30">30</option> \
+					<option value="29">29</option> \
+					<option value="28">28</option> \
+					<option value="27">27</option> \
+					<option value="26">26</option> \
+					<option value="25">25</option> \
+					<option value="24">24</option> \
+					<option value="23">23</option> \
+					<option value="22">22</option> \
+					<option value="21">21</option> \
+					<option value="20">20</option> \
+					<option value="19">19</option> \
+					<option value="18">18</option> \
+					<option value="17">17</option> \
+					<option value="16">16</option> \
+					<option value="15">15</option> \
+					<option value="14">14</option> \
+					<option value="13">13</option> \
+					<option value="12">12</option> \
+					<option value="11">11</option> \
+					<option value="10">10</option> \
+					<option value="9">&nbsp;&nbsp;9</option> \
+					<option value="8">&nbsp;&nbsp;8</option> \
+					<option value="7">&nbsp;&nbsp;7</option> \
+					<option value="6">&nbsp;&nbsp;6</option> \
+					<option value="5">&nbsp;&nbsp;5</option> \
+					<option value="4">&nbsp;&nbsp;4</option> \
+					<option value="3">&nbsp;&nbsp;3</option> \
+					<option value="2">&nbsp;&nbsp;2</option> \
+					<option value="1">&nbsp;&nbsp;1</option> \
+				');
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').addClass('hide').hide(); // 1280x720 16:9
+				$('#xga').removeClass('hide').show(); // 1024x768 4:3
+				$('#qhd').addClass('hide').hide(); // 960x544 16:9
+				$('#svga').removeClass('hide').show(); // 800x608 4:3
+				$('#wvga').addClass('hide').hide(); // 800x448 16:9
+				$('#vga').removeClass('hide').show(); // 640x480 4:3
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+			case 5: // 1640x922 16:9 0.1-40fps partial
+				$('#framerate').html(' \
+					<option value="40">40</option> \
+					<option value="39">39</option> \
+					<option value="38">38</option> \
+					<option value="37">37</option> \
+					<option value="36">36</option> \
+					<option value="35">35</option> \
+					<option value="34">34</option> \
+					<option value="33">33</option> \
+					<option value="32">32</option> \
+					<option value="31">31</option> \
+					<option value="30">30</option> \
+					<option value="29">29</option> \
+					<option value="28">28</option> \
+					<option value="27">27</option> \
+					<option value="26">26</option> \
+					<option value="25">25</option> \
+					<option value="24">24</option> \
+					<option value="23">23</option> \
+					<option value="22">22</option> \
+					<option value="21">21</option> \
+					<option value="20">20</option> \
+					<option value="19">19</option> \
+					<option value="18">18</option> \
+					<option value="17">17</option> \
+					<option value="16">16</option> \
+					<option value="15">15</option> \
+					<option value="14">14</option> \
+					<option value="13">13</option> \
+					<option value="12">12</option> \
+					<option value="11">11</option> \
+					<option value="10">10</option> \
+					<option value="9">&nbsp;&nbsp;9</option> \
+					<option value="8">&nbsp;&nbsp;8</option> \
+					<option value="7">&nbsp;&nbsp;7</option> \
+					<option value="6">&nbsp;&nbsp;6</option> \
+					<option value="5">&nbsp;&nbsp;5</option> \
+					<option value="4">&nbsp;&nbsp;4</option> \
+					<option value="3">&nbsp;&nbsp;3</option> \
+					<option value="2">&nbsp;&nbsp;2</option> \
+					<option value="1">&nbsp;&nbsp;1</option> \
+				');
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').removeClass('hide').show(); // 1280x720 16:9
+				$('#xga').addClass('hide').hide(); // 1024x768 4:3
+				$('#qhd').removeClass('hide').show(); // 960x544 16:9
+				$('#svga').addClass('hide').hide(); // 800x608 4:3
+				$('#wvga').removeClass('hide').show(); // 800x448 16:9
+				$('#vga').addClass('hide').hide(); // 640x480 4:3
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+			case 6: // 1280x720 16:9 40-90fps partial
+				if ($('#resolution').val() == '1280x720') {
+					$('#framerate').html(' \
+						<option value="60">60</option> \
+						<option value="55">55</option> \
+						<option value="50">50</option> \
+						<option value="45">45</option> \
+						<option value="40">40</option> \
+					');
+				} else {
+					$('#framerate').html(' \
+						<option value="90">90</option> \
+						<option value="85">85</option> \
+						<option value="80">80</option> \
+						<option value="75">75</option> \
+						<option value="70">70</option> \
+						<option value="65">65</option> \
+						<option value="60">60</option> \
+						<option value="55">55</option> \
+						<option value="50">50</option> \
+						<option value="45">45</option> \
+						<option value="40">40</option> \
+					');
+				}
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').removeClass('hide').show(); // 1280x720 16:9
+				$('#xga').addClass('hide').hide(); // 1024x768 4:3
+				$('#qhd').removeClass('hide').show(); // 960x544 16:9
+				$('#svga').addClass('hide').hide(); // 800x608 4:3
+				$('#wvga').removeClass('hide').show(); // 800x448 16:9
+				$('#vga').addClass('hide').hide(); // 640x480 4:3
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+			case 7: // 640x480 4:3 40-200fps partial
+				$('#framerate').html(' \
+					<option value="200">200</option> \
+					<option value="190">190</option> \
+					<option value="180">180</option> \
+					<option value="170">170</option> \
+					<option value="160">160</option> \
+					<option value="150">150</option> \
+					<option value="140">140</option> \
+					<option value="130">130</option> \
+					<option value="120">120</option> \
+					<option value="110">110</option> \
+					<option value="100">100</option> \
+					<option value="90">&nbsp;&nbsp;90</option> \
+					<option value="80">&nbsp;&nbsp;80</option> \
+					<option value="70">&nbsp;&nbsp;70</option> \
+					<option value="60">&nbsp;&nbsp;60</option> \
+					<option value="50">&nbsp;&nbsp;50</option> \
+					<option value="40">&nbsp;&nbsp;40</option> \
+				');
+				$('#wxga').addClass('hide').hide(); // 1280x800 16:10
+				$('#hd').addClass('hide').hide(); // 1280x720 16:9
+				$('#xga').addClass('hide').hide(); // 1024x768 4:3
+				$('#qhd').addClass('hide').hide(); // 960x544 16:9
+				$('#svga').addClass('hide').hide(); // 800x608 4:3
+				$('#wvga').addClass('hide').hide(); // 800x448 16:9
+				$('#vga').removeClass('hide').show(); // 640x480 4:3
+				$('#st').addClass('hide').hide(); // 640x400 16:10
+				$('#cga').addClass('hide').hide(); // 320x200 16:10
+				$('#lynx').addClass('hide').hide(); // 160x100 16:10
+				break;
+		}
+	}
+	if (data.model == 'ov9281') {
+		switch(parseInt(data.sensor_mode, 10)) {
+			case 0: // auto
+			case 1:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			case 13:
+			case 14:
+			case 15:
+			case 16:
+			case 17:
+			case 21:
+			case 22:
+				$('#framerate').html(' \
 					<option value="60">60</option> \
 					<option value="55">55</option> \
 					<option value="50">50</option> \
 					<option value="45">45</option> \
 					<option value="40">40</option> \
+					<option value="35">35</option> \
+					<option value="30">30</option> \
+					<option value="25">25</option> \
+					<option value="20">20</option> \
+					<option value="15">15</option> \
+					<option value="10">10</option> \
+					<option value="5">&nbsp;&nbsp;5</option> \
 				');
-			}
-			$('#hd').removeClass('hide').show(); // 1280x720 16:9
-			$('#xga').addClass('hide').hide(); // 1024x768 4:3
-			$('#qhd').removeClass('hide').show(); // 960x544 16:9
-			$('#svga').addClass('hide').hide(); // 800x608 4:3
-			$('#wvga').removeClass('hide').show(); // 800x448 16:9
-			$('#vga').addClass('hide').hide(); // 640x480 4:3
-			break;
-		case 7: // 640x480 4:3 40-200fps partial
-			$('#framerate').html(' \
-				<option value="200">200</option> \
-				<option value="190">190</option> \
-				<option value="180">180</option> \
-				<option value="170">170</option> \
-				<option value="160">160</option> \
-				<option value="150">150</option> \
-				<option value="140">140</option> \
-				<option value="130">130</option> \
-				<option value="120">120</option> \
-				<option value="110">110</option> \
-				<option value="100">100</option> \
-				<option value="90">&nbsp;&nbsp;90</option> \
-				<option value="80">&nbsp;&nbsp;80</option> \
-				<option value="70">&nbsp;&nbsp;70</option> \
-				<option value="60">&nbsp;&nbsp;60</option> \
-				<option value="50">&nbsp;&nbsp;50</option> \
-				<option value="40">&nbsp;&nbsp;40</option> \
-			');
-			$('#hd').addClass('hide').hide(); // 1280x720 16:9
-			$('#xga').addClass('hide').hide(); // 1024x768 4:3
-			$('#qhd').addClass('hide').hide(); // 960x544 16:9
-			$('#svga').addClass('hide').hide(); // 800x608 4:3
-			$('#wvga').addClass('hide').hide(); // 800x448 16:9
-			$('#vga').removeClass('hide').show(); // 640x480 4:3
-			break;
+				break;
+			case 2:
+			case 18:
+				$('#framerate').html(' \
+					<option value="210">210</option> \
+					<option value="190">190</option> \
+					<option value="170">170</option> \
+					<option value="150">150</option> \
+					<option value="130">130</option> \
+					<option value="110">110</option> \
+					<option value="90">&nbsp;&nbsp;90</option> \
+					<option value="70">&nbsp;&nbsp;70</option> \
+					<option value="50">&nbsp;&nbsp;50</option> \
+					<option value="30">&nbsp;&nbsp;30</option> \
+					<option value="10">&nbsp;&nbsp;10</option> \
+				');
+				break;
+			case 3:
+			case 19:
+				$('#framerate').html(' \
+					<option value="420">420</option> \
+					<option value="380">380</option> \
+					<option value="340">340</option> \
+					<option value="300">300</option> \
+					<option value="260">260</option> \
+					<option value="220">220</option> \
+					<option value="180">180</option> \
+					<option value="140">140</option> \
+					<option value="100">100</option> \
+					<option value="60">&nbsp;&nbsp;60</option> \
+					<option value="20">&nbsp;&nbsp;20</option> \
+				');
+				break;
+			case 4:
+			case 20:
+				$('#framerate').html(' \
+					<option value="480">480</option> \
+					<option value="440">440</option> \
+					<option value="400">400</option> \
+					<option value="360">360</option> \
+					<option value="320">320</option> \
+					<option value="280">280</option> \
+					<option value="240">240</option> \
+					<option value="200">200</option> \
+					<option value="160">160</option> \
+					<option value="120">120</option> \
+					<option value="80">&nbsp;&nbsp;80</option> \
+					<option value="40">&nbsp;&nbsp;40</option> \
+				');
+				break;
+		}
+		$('#wxga').removeClass('hide').show(); // 1280x800 16:10
+		$('#hd').removeClass('hide').show(); // 1280x720 16:9
+		$('#xga').addClass('hide').hide(); // 1024x768 4:3
+		$('#qhd').addClass('hide').hide(); // 960x544 16:9
+		$('#svga').addClass('hide').hide(); // 800x608 4:3
+		$('#wvga').addClass('hide').hide(); // 800x448 16:9
+		$('#vga').addClass('hide').hide(); // 640x480 4:3					
+		$('#st').removeClass('hide').show(); // 640x400 16:10
+		$('#cga').removeClass('hide').show(); // 320x200 16:10
+		$('#lynx').removeClass('hide').show(); // 160x100 16:10
 	}
 	$('#framerate').val(data.framerate);
 	$('#framerate_button').removeClass('hide').show();
@@ -760,92 +885,154 @@ function display(data) {
 	$('#bitrate_mode').val(data.bitrate_mode)
 	$('#bitrate').val(data.bitrate);
 	$('#sensor_mode').val(data.sensor_mode);
-	if (data.sensor_mode == '0' || data.sensor_mode == '2' ||
-		data.sensor_mode == '3' || data.sensor_mode == '4') {
-		zoom = 0;
+	if (data.model == 'ov5647' || data.model == 'imx219') {
+		if (data.sensor_mode == '0' || data.sensor_mode == '2' ||
+			data.sensor_mode == '3' || data.sensor_mode == '4') {
+			zoom = 0;
+		}
+		if (data.sensor_mode == '1') {
+			zoom = 3;
+		}
+		if (data.sensor_mode == '5') {
+			zoom = 1;
+		}
+		if (data.sensor_mode == '6') {
+			zoom = 2;
+		}
+		if (data.sensor_mode == '7') {
+			zoom = 4;
+		}
+		$('#zoom_button').removeClass('hide').show();
+		$('#zoom_in_button').removeClass('hide').show();
+		if (zoom == sensor_mode.length - 1) {
+			$('#zoom_in_button').attr('disabled', true);
+		} else if (zoom >= 0) {
+			$('#zoom_in_button').attr('disabled', false);
+		}
+		$('#zoom_out_button').removeClass('hide').show();
+		if (zoom == 0) {
+			$('#zoom_out_button').attr('disabled', true);
+		} else if (zoom <= sensor_mode.length - 1) {
+			$('#zoom_out_button').attr('disabled', false);
+		}
 	}
-	if (data.sensor_mode == '1') {
-		zoom = 3;
-	}
-	if (data.sensor_mode == '5') {
-		zoom = 1;
-	}
-	if (data.sensor_mode == '6') {
-		zoom = 2;
-	}
-	if (data.sensor_mode == '7') {
-		zoom = 4;
-	}
-	$('#zoom_button').removeClass('hide').show();
-	$('#zoom_in_button').removeClass('hide').show();
-	if (zoom == sensor_mode.length - 1) {
-		$('#zoom_in_button').attr('disabled', true);
-	} else if (zoom >= 0) {
-		$('#zoom_in_button').attr('disabled', false);
-	}
-	$('#zoom_out_button').removeClass('hide').show();
-	if (zoom == 0) {
-		$('#zoom_out_button').attr('disabled', true);
-	} else if (zoom <= sensor_mode.length - 1) {
-		$('#zoom_out_button').attr('disabled', false);
-	}
+
 	$('#sensor_mode_button').removeClass('hide').show();
 	$('#sensor_mode').removeClass('hide').show();
 	if (data.model == 'ov5647') {
-		$('#sensor_mode_0').text("auto");
-		$('#sensor_mode_1').text("1920x1080 16:9   0.1-30fps partial");
-		$('#sensor_mode_2').text("2592x1944  4:3   0.1-15fps full");
-		$('#sensor_mode_3').text("2592x1944  4:3 0.1666-1fps full");
-		$('#sensor_mode_4').text(" 1296x972  4:3     1-42fps full");
-		$('#sensor_mode_5').text(" 1296x730 16:9     1-49fps full");
-		$('#sensor_mode_6').text("  640x480  4:3  42.1-60fps full");
-		$('#sensor_mode_7').text("  640x480  4:3  60.1-90fps full");													
+		$('#sensor_mode_0').removeClass('hide').show().html("auto");
+		$('#sensor_mode_1').removeClass('hide').show().html("1920x1080 16:9 &nbsp;&nbsp;0.1-30fps partial");
+		$('#sensor_mode_2').removeClass('hide').show().html("2592x1944 &nbsp;4:3 &nbsp;&nbsp;0.1-15fps full");
+		$('#sensor_mode_3').removeClass('hide').show().html("2592x1944 &nbsp;4:3 0.1666-1fps full");
+		$('#sensor_mode_4').removeClass('hide').show().html("&nbsp;1296x972 &nbsp;4:3 &nbsp;&nbsp;&nbsp;&nbsp;1-42fps full");
+		$('#sensor_mode_5').removeClass('hide').show().html("&nbsp;1296x730 16:9 &nbsp;&nbsp;&nbsp;&nbsp;1-49fps full");
+		$('#sensor_mode_6').removeClass('hide').show().html("&nbsp;&nbsp;640x480 &nbsp;4:3 &nbsp;42.1-60fps full");
+		$('#sensor_mode_7').removeClass('hide').show().html("&nbsp;&nbsp;640x480 &nbsp;4:3 &nbsp;60.1-90fps full");													
 	}
 	if (data.model == 'imx219') {
-		$('#sensor_mode_0').text("auto");
-		$('#sensor_mode_1').text("1920x1080 16:9 0.1-30fps partial");
-		$('#sensor_mode_2').text("3280x2464  4:3 0.1-15fps full");
-		$('#sensor_mode_3').text("3280x2464  4:3 0.1-15fps full");
-		$('#sensor_mode_4').text("1640x1232  4:3 0.1-40fps full");
-		$('#sensor_mode_5').text(" 1640x922 16:9 0.1-40fps partial");
-		$('#sensor_mode_6').text(" 1280x720 16:9  40-90fps partial");
-		$('#sensor_mode_7').text("  640x480  4:3 40-200fps partial");
+		$('#sensor_mode_0').removeClass('hide').show().html("auto");
+		$('#sensor_mode_1').removeClass('hide').show().html("1920x1080 16:9 0.1-30fps partial");
+		$('#sensor_mode_2').removeClass('hide').show().html("3280x2464 &nbsp;4:3 0.1-15fps full");
+		$('#sensor_mode_3').removeClass('hide').show().html("3280x2464 &nbsp;4:3 0.1-15fps full");
+		$('#sensor_mode_4').removeClass('hide').show().html("1640x1232 &nbsp;4:3 0.1-40fps full");
+		$('#sensor_mode_5').removeClass('hide').show().html("&nbsp;1640x922 16:9 0.1-40fps partial");
+		$('#sensor_mode_6').removeClass('hide').show().html("&nbsp;1280x720 16:9 &nbsp;40-90fps partial");
+		$('#sensor_mode_7').removeClass('hide').show().html("&nbsp;&nbsp;640x480 &nbsp;4:3 40-200fps partial");
+	}
+	if (data.model == 'ov9281') {
+		$('#sensor_mode_0').removeClass('hide').show().html("1280x800 GREY &nbsp;&nbsp;60fps 1lane");
+		$('#sensor_mode_1').removeClass('hide').show().html("1280x720 GREY &nbsp;&nbsp;60fps 1lane");
+		$('#sensor_mode_2').removeClass('hide').show().html("&nbsp;&nbsp;640x400 GREY 210fps 1lane");
+		$('#sensor_mode_3').removeClass('hide').show().html("&nbsp;&nbsp;320x200 GREY 420fps 1lane");
+		$('#sensor_mode_4').removeClass('hide').show().html("&nbsp;&nbsp;160x100 GREY 480fps 1lane");
+		$('#sensor_mode_5').removeClass('hide').show().html("1280x800 GREY 480fps 2lanes");
+		$('#sensor_mode_6').removeClass('hide').show().html("1280x800 Y10P 480fps 2lanes");
+		$('#sensor_mode_7').removeClass('hide').show().html("1280x800 GREY &nbsp;&nbsp;60fps 1lane &nbsp;&nbsp;ETM");
+		$('#sensor_mode_8').removeClass('hide').show().html("1280x720 GREY &nbsp;&nbsp;60fps 1lane &nbsp;&nbsp;ETM");
+		$('#sensor_mode_9').removeClass('hide').show().html("&nbsp;&nbsp;640x400 GREY &nbsp;&nbsp;60fps 1lane &nbsp;&nbsp;ETM");
+		$('#sensor_mode_10').removeClass('hide').show().html("&nbsp;&nbsp;320x200 GREY &nbsp;&nbsp;60fps 1lane &nbsp;&nbsp;ETM");
+		$('#sensor_mode_11').removeClass('hide').show().html("1280x800 GREY &nbsp;&nbsp;60fps 2lanes ETM");
+		$('#sensor_mode_12').removeClass('hide').show().html("1280x800 Y10P &nbsp;&nbsp;60fps 2lanes ETM");
+		$('#sensor_mode_13').removeClass('hide').show().html("1280x720 GREY &nbsp;&nbsp;60fps 2lanes ETM");
+		$('#sensor_mode_14').removeClass('hide').show().html("&nbsp;&nbsp;640x400 GREY &nbsp;&nbsp;60fps 2lanes ETM");
+		$('#sensor_mode_15').removeClass('hide').show().html("&nbsp;&nbsp;320x200 GREY &nbsp;&nbsp;60fps 2lanes ETM");
+		$('#sensor_mode_16').removeClass('hide').show().html("1280x800 BA81 &nbsp;&nbsp;60fps 1lane");
+		$('#sensor_mode_17').removeClass('hide').show().html("1280x720 BA81 &nbsp;&nbsp;60fps 1lane");
+		$('#sensor_mode_18').removeClass('hide').show().html("&nbsp;&nbsp;640x400 BA81 210fps 1lane");
+		$('#sensor_mode_19').removeClass('hide').show().html("&nbsp;&nbsp;320x200 BA81 420fps 1lane");
+		$('#sensor_mode_20').removeClass('hide').show().html("&nbsp;&nbsp;160x100 BA81 480fps 1lane");
+		$('#sensor_mode_21').removeClass('hide').show().html("1280x800 BA81 480fps 2lanes");
+		$('#sensor_mode_22').removeClass('hide').show().html("1280x800 pBAA 480fps 1lane");
 	}
 
 	// Effects
 
-	$('#brightness').val(data.brightness);
-	$('#contrast').val(data.contrast);
-	$('#saturation').val(data.saturation);
-	$('#sharpness').val(data.sharpness);
-	$('#drc').val(data.drc);
-	$('#image_effect').val(data.image_effect);
-	$('#awb_mode').val(data.awb_mode);
-	$('#awb_gain_blue').val(data.awb_gain_blue);
-	$('#awb_gain_red').val(data.awb_gain_red);
+	if (data.model == 'ov5647' || data.model == 'imx219') {
+		$('#effects').removeClass('hide').show()
+		$('#brightness').val(data.brightness);
+		$('#contrast').val(data.contrast);
+		$('#saturation').val(data.saturation);
+		$('#sharpness').val(data.sharpness);
+		$('#drc').val(data.drc);
+		$('#image_effect').val(data.image_effect);
+		$('#awb_mode').val(data.awb_mode);
+		$('#awb_gain_blue').val(data.awb_gain_blue);
+		$('#awb_gain_red').val(data.awb_gain_red);
+	}
 
 	// Settings
 
 	$('#exposure_mode').val(data.exposure_mode);
-	$('#metering_mode').val(data.metering_mode);
-	$('#exposure_compensation').val(data.exposure_compensation);
-	$('#iso').val(data.iso);
-	$('#shutter_speed').val(data.shutter_speed);
-	$('#video_stabilisation').val(data.video_stabilisation);
-	if (data.video_stabilisation == '0') {
-		$('#video_stabilisation').removeClass('active');
-		$('#video_stabilisation').removeClass('btn-light');
-		$('#video_stabilisation').addClass('btn-dark');
-	} else {
-		$('#video_stabilisation').addClass('active');
-		$('#video_stabilisation').removeClass('btn-dark');
-		$('#video_stabilisation').addClass('btn-light');
+	if (data.model == 'ov5647' || data.model == 'imx219') {
+		$('#night').removeClass('hide').show()
+		$('#nightpreview').removeClass('hide').show()
+		$('#backlight').removeClass('hide').show()
+		$('#spotlight').removeClass('hide').show()
+		$('#sports').removeClass('hide').show()
+		$('#snow').removeClass('hide').show()
+		$('#beach').removeClass('hide').show()
+		$('#verylong').removeClass('hide').show()
+		$('#nifixedfpsght').removeClass('hide').show()
+		$('#antishake').removeClass('hide').show()
+		$('#fireworks').removeClass('hide').show()
+		$('#metering_mode_button').removeClass('hide').show()
+		$('#metering_mode').removeClass('hide').show()
+		$('#metering_mode').val(data.metering_mode);
+		$('#exposure_compensation_button').removeClass('hide').show()
+		$('#exposure_compensation').removeClass('hide').show()
+		$('#exposure_compensation').val(data.exposure_compensation);
+		$('#iso_button').removeClass('hide').show()
+		$('#iso').removeClass('hide').show()
+		$('#iso').val(data.iso);
+		$('#shutter_speed_button').removeClass('hide').show()
+		$('#shutter_speed').removeClass('hide').show()
+		$('#shutter_speed').val(data.shutter_speed);
+		$('#video_stabilisation_button').removeClass('hide').show()
+		$('#video_stabilisation').removeClass('hide').show()
+		$('#video_stabilisation').val(data.video_stabilisation);
+		if (data.video_stabilisation == '0') {
+			$('#video_stabilisation').removeClass('active');
+			$('#video_stabilisation').removeClass('btn-light');
+			$('#video_stabilisation').addClass('btn-dark');
+		} else {
+			$('#video_stabilisation').addClass('active');
+			$('#video_stabilisation').removeClass('btn-dark');
+			$('#video_stabilisation').addClass('btn-light');
+		}
+	}
+	if (data.model == 'ov9281') {
+		$('#exposure_button').removeClass('hide').show()
+		$('#exposure').removeClass('hide').show()
+		$('#exposure').val(data.exposure);
 	}
 	
-
 	// Orientation
 
-	$('#rotation').val(data.rotation);
+	if (data.model == 'ov5647' || data.model == 'imx219') {
+		$('#rotation_button').removeClass('hide').show()
+		$('#rotation').removeClass('hide').show()
+		$('#rotation').val(data.rotation);
+	}
 	$('#hflip').val(data.hflip);
 	if (data.hflip == '0') {
 		$('#hflip').removeClass('active');
@@ -866,7 +1053,11 @@ function display(data) {
 		$('#vflip').removeClass('btn-dark');
 		$('#vflip').addClass('btn-light');
 	}
-	$('#video_direction').val(data.video_direction);
+	if (data.model == 'ov5647' || data.model == 'imx219') {
+		$('#video_direction_button').removeClass('hide').show()
+		$('#video_direction').removeClass('hide').show()
+		$('#video_direction').val(data.video_direction);
+	}
 
 	// Controls
 

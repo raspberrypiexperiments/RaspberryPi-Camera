@@ -51,6 +51,30 @@ import psutil
 from gpiozero import DiskUsage, CPUTemperature
 import subprocess
 import datetime
+import arducam_mipicamera as arducam
+import sys
+#import tracemalloc
+#tracemalloc.start()
+
+
+def camera_revision():
+	stdout_bk = os.dup(sys.stderr.fileno())
+	pipefd = os.pipe2(0)
+	os.dup2(pipefd[1], sys.stderr.fileno())
+	arducam.mipi_camera().init_camera()
+	os.close(pipefd[1])
+	os.dup2(stdout_bk, sys.stderr.fileno())
+	i = 0
+	revision = ''
+	while True:
+		ch = os.read(pipefd[0],1)
+		if i >= 13 and ch != b' ':
+			revision = revision + ch.decode("utf-8")
+				
+		i = i + 1
+		if ch == b' ' and i > 13 and i < 30:
+			break
+	return revision
 
 
 def name(obj):
@@ -386,7 +410,10 @@ class HTTPSServer(WSGIServer):
 		if 'video_stabilisation' in req.params:
 			self.__camera_server__.set_video_stabilisation(
 				req.params['video_stabilisation'] == '1')
-		
+		if 'exposure' in req.params:
+			self.__camera_server__.set_exposure(
+				int(req.params['exposure']))	
+
 		# Orientation
 
 		if 'rotation' in req.params:
@@ -457,14 +484,12 @@ class CameraServer(Server):
 		self.__main_lock__ = threading.Lock()
 		self.__restart_lock__ = threading.Lock()
 		self.__image_effect_lock__ = threading.Lock()
-		with picamera.PiCamera() as camera:
-			self.__model__ = camera.revision
-		#self.__fragment_id__ = 0
+		try:
+			with picamera.PiCamera() as camera:
+				self.__model__ = camera.revision
+		except:
+			self.__model__ = camera_revision()
 		self.__stats_id__ = 0
-		#self.__watchdog__ = False
-		#self.__detect_freeze__ = True
-		#self.__extra_controls__ = 'encode,frame_level_rate_control_enable=1,\
-		#	h264_profile=0,h264_level=14,video_bitrate={}'
 		self.__extra_controls__ = 'encode,video_bitrate_mode={},h264_profile=0,\
 			h264_level=11,video_bitrate={},h264_i_frame_period={}'
 		parameters = None
@@ -485,11 +510,17 @@ class CameraServer(Server):
 			if 'width' in parameters:
 				self.__width__ = parameters['width']
 			else:
-				self.__width__ = 800
+				if self.__model__ == 'imx219':
+					self.__width__ = 800
+				if self.__model__ == 'ov9281':
+					self.__width__ = 1280
 			if 'height' in parameters:
 				self.__height__ = parameters['height']
 			else:
-				self.__height__ = 608
+				if self.__model__ == 'imx219':
+					self.__height__ = 608
+				if self.__model__ == 'ov9281':
+					self.__width__ = 800
 			if 'framerate' in parameters:
 				self.__framerate__ = parameters['framerate']
 			else:
@@ -574,6 +605,10 @@ class CameraServer(Server):
 					(parameters['video_stabilisation'] == 1)
 			else:
 				self.__video_stabilisation__ = False
+			if 'exposure' in parameters:
+				self.__exposure__ = parameters['exposure']
+			else:
+				self.__exposure__ = 681
 
 			# Orientation
 
@@ -644,8 +679,12 @@ class CameraServer(Server):
 		
 			# Quality
 
-			self.__width__ = 800
-			self.__height__ = 608
+			if self.__model__ == 'imx219':
+				self.__width__ = 800
+				self.__height__ = 608
+			if self.__model__ == 'ov9281':
+				self.__width__ = 1280
+				self.__height__ = 800				
 			self.__framerate__ = 30
 			self.__bitrate_mode__ = 0
 			self.__bitrate__ = 3000000
@@ -672,6 +711,7 @@ class CameraServer(Server):
 			self.__shutter_speed__ = 0
 			# TODO(marcin.sielski): Change it to True
 			self.__video_stabilisation__ = False
+			self.__exposure__ = 681
 
 			# Orientation
 
@@ -693,7 +733,7 @@ class CameraServer(Server):
 			self.__fragment_id__ = 0
 			self.__continuation__ = False
 			self.__persistent__ = False
-			
+
 
 		self.init()
 
@@ -770,6 +810,7 @@ class CameraServer(Server):
 				'iso': self.__iso__,
 				'shutter_speed': self.__shutter_speed__,
 				'video_stabilisation': int(self.__video_stabilisation__),
+				'exposure': self.__exposure__,
 
 				# Orientation
 
@@ -826,61 +867,6 @@ class CameraServer(Server):
 		return json.dumps(media, sort_keys=True)
 
 
-#	def __on_running__(self, queue):
-#
-#		"""
-#		Queue running callback executed when queue is running
-#
-#		Args:
-#			queue (GstQueue): queue
-#		"""
-#
-#		function_name = "'" + threading.currentThread().name + "'." +\
-#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-#		logging.debug(function_name + ": entry")
-#		self.__watchdog__ = False
-#		logging.debug(function_name + ": exit")
-#
-#
-#	def __on_freeze__(self):
-#
-#		"""
-#		Freeze detection callback
-#
-#		Returns:
-#			false
-#		"""
-#
-#		function_name = "'" + threading.currentThread().name + "'." +\
-#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-#		logging.debug(function_name + ": entry")
-#		if self.__watchdog__:
-#			self.__watchdog__ = False
-#			self.restart()
-#		self.__detect_freeze__ = True
-#		logging.debug(function_name + ": false")
-#		return False
-#
-#
-#	def __on_underrun__(self, queue):
-#
-#		"""
-#		Queue overrun callback executed when queue is empty
-#
-#		Args:
-#			queue (GstQueue): queue
-#		"""
-#
-#		function_name = "'" + threading.currentThread().name + "'." +\
-#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-#		logging.debug(function_name + ": entry")
-#		if self.__detect_freeze__:
-#			self.__detect_freeze__ = False
-#			self.__watchdog__ = True
-#			GLib.timeout_add_seconds(1, self.__on_freeze__)
-#		logging.debug(function_name + ": exit")
-
-
 	def init(self):
 
 		"""
@@ -893,7 +879,10 @@ class CameraServer(Server):
 		self.__source_caps__ = Gst.Caps.new_empty_simple('video/x-raw')
 		self.__source_caps__.set_value('width', self.__width__)
 		self.__source_caps__.set_value('height', self.__height__)
-		self.__source_caps__.set_value('format', 'I420')                        
+		if self.__model__ == 'imx219':
+			self.__source_caps__.set_value('format', 'I420')                        
+		if self.__model__ == 'ov9281':
+			self.__source_caps__.set_value('format', 'GRAY8')
 		self.__source_caps__.set_value(
 			'framerate', Gst.Fraction(self.__framerate__, 1))
 
@@ -901,25 +890,27 @@ class CameraServer(Server):
 			'capsfilter', 'source-capsfilter')
 		self.__source_capsfilter__.set_property('caps', self.__source_caps__)
 
+		if self.__model__ == 'ov9281':
+			self.__overlay__ = Gst.ElementFactory.make(
+				'textoverlay', 'text-overlay')
+			self.__overlay__.set_property('shaded-background', True)
+			self.__overlay__.set_property('valignment','top')
+
 		self.__raw_tee__ = Gst.ElementFactory.make('tee', 'raw-tee')
 
-#		self.__encoder_queue__ = Gst.ElementFactory.make(
-#			'queue', 'encoder-queue')
-#		# NOTE(marcin.sielski): Not confirmed if the code below can detect
-#		# camera source stuck. Camera source stuck may be potentially caused by
-#		# environmental factors such as incorrect power supply or high cpu load
-#		# caused by cron
-#		self.__encoder_queue__.set_property('max-size-buffers', 1000)
-#		self.__encoder_queue__.set_property('max-size-bytes', 52428800)
-#		self.__encoder_queue__.set_property('max-size-time', 5000000000)
-#		self.__encoder_queue__.connect('running', self.__on_running__)
-#		self.__encoder_queue__.connect('underrun', self.__on_underrun__)
-
-#		self.__encoder__ = Gst.ElementFactory.make('omxh264enc', 'encoder')
-#		self.__encoder__.set_property('control-rate', 2)
-#		self.__encoder__.set_property('target-bitrate', self.__bitrate__)
-#		self.__encoder__.set_property(
-#			'interval-intraframes', self.__framerate__)
+		if self.__model__ == 'ov9281':
+			self.__converter__ = Gst.ElementFactory.make(
+				'videoconvert', 'converter')
+			self.__converter_caps__ = Gst.Caps.new_empty_simple('video/x-raw')
+			self.__converter_caps__.set_value('width', self.__width__)
+			self.__converter_caps__.set_value('height', self.__height__)
+			self.__converter_caps__.set_value(
+				'framerate', Gst.Fraction(self.__framerate__, 1))
+			self.__converter_caps__.set_value('format', 'RGB')
+			self.__converter_capsfilter__ = Gst.ElementFactory.make(
+			'capsfilter', 'converter-capsfilter')
+			self.__converter_capsfilter__.set_property('caps', self.__converter_caps__)
+		
 		self.__encoder__ = Gst.ElementFactory.make('v4l2h264enc', 'encoder')
 		self.__encoder__.set_property(
 			'extra-controls', Gst.Structure.new_from_string(
@@ -934,35 +925,12 @@ class CameraServer(Server):
 			'capsfilter', 'encoder-capsfilter')
 		self.__encoder_capsfilter__.set_property('caps', self.__encoder_caps__)
 
-#		self.__parser_queue__ = Gst.ElementFactory.make('queue', 'parser-queue')
-#		self.__parser_queue__.set_property(
-#			'max-size-buffers', 0)
-#		self.__parser_queue__.set_property(
-#			'max-size-bytes', 
-#			0)
-#		self.__parser_queue__.set_property('max-size-time', 0)
-		# NOTE(marcin.sielski): Not confirmed if the code below can detect
-		# camera source stuck. Camera source stuck may be potentially caused by
-		# environmental factors such as incorrect power supply or high cpu load
-		# caused by cron
-#		self.__parser_queue__.connect('running', self.__on_running__)
-#		self.__parser_queue__.connect('underrun', self.__on_underrun__)
-
 		self.__parser__ = Gst.ElementFactory.make('h264parse', 'parser')
 		GstBase.BaseParse.set_infer_ts(self.__parser__, True)	
 		GstBase.BaseParse.set_pts_interpolation(self.__parser__, True)
 		self.__parser__.set_property('config-interval', -1)
 
 		self.__h264_tee__ = Gst.ElementFactory.make('tee', 'h264-tee')
-
-#		self.__payloader_queue__ = Gst.ElementFactory.make(
-#			'queue', 'payloader-queue')
-#		self.__payloader_queue__.set_property(
-#			'max-size-buffers', 0)
-#		self.__payloader_queue__.set_property(
-#			'max-size-bytes', 
-#			0)
-#		self.__payloader_queue__.set_property('max-size-time', 0)
 
 		self.__payloader__ = Gst.ElementFactory.make('rtph264pay', 'payloader')
 		self.__payloader__.set_property('config-interval', -1)
@@ -972,11 +940,9 @@ class CameraServer(Server):
 		self.__sink_queue__ = Gst.ElementFactory.make('queue', 'sink-queue')
 		self.__sink_queue__.set_property(
 			'max-size-buffers', 0)
-#			'max-size-buffers', 3*self.__framerate__*200)
 		self.__sink_queue__.set_property(
 			'max-size-bytes', 0)
-#			3*self.__framerate__*self.__width__*self.__height__)
-		self.__sink_queue__.set_property('max-size-time', 0)#3*1000000000)
+		self.__sink_queue__.set_property('max-size-time', 0)
 
 		self.__sink__ = Gst.ElementFactory.make('udpsink', 'sink')
 		self.__sink__.set_property('host', '127.0.0.1')
@@ -985,29 +951,35 @@ class CameraServer(Server):
 
 		self.__pipeline__.add(self.__source__)
 		self.__pipeline__.add(self.__source_capsfilter__)
+		if self.__model__ == 'ov9281':
+			self.__pipeline__.add(self.__overlay__)
 		self.__pipeline__.add(self.__raw_tee__)
-#		self.__pipeline__.add(self.__encoder_queue__)
+		if self.__model__ == 'ov9281':
+			self.__pipeline__.add(self.__converter__)
+			self.__pipeline__.add(self.__converter_capsfilter__)
 		self.__pipeline__.add(self.__encoder__)
 		self.__pipeline__.add(self.__encoder_capsfilter__)
-#		self.__pipeline__.add(self.__parser_queue__)
 		self.__pipeline__.add(self.__parser__)
 		self.__pipeline__.add(self.__h264_tee__)
-#		self.__pipeline__.add(self.__payloader_queue__)
 		self.__pipeline__.add(self.__payloader__)
 		self.__pipeline__.add(self.__rtsp_tee__)
 		self.__pipeline__.add(self.__sink_queue__)
 		self.__pipeline__.add(self.__sink__)
 
 		self.__source__.link(self.__source_capsfilter__)
-		self.__source_capsfilter__.link(self.__raw_tee__)
-		self.__raw_tee__.link(self.__encoder__)    
-#		self.__encoder_queue__.link(self.__encoder__) 
+		if self.__model__ == 'imx219':
+			self.__source_capsfilter__.link(self.__raw_tee__)
+			self.__raw_tee__.link(self.__encoder__) 
+		if self.__model__ == 'ov9281':
+			self.__source_capsfilter__.link(self.__overlay__)
+			self.__overlay__.link(self.__raw_tee__)
+			self.__raw_tee__.link(self.__converter__)  
+			self.__converter__.link(self.__converter_capsfilter__)  
+			self.__converter_capsfilter__.link(self.__encoder__)
 		self.__encoder__.link(self.__encoder_capsfilter__)
 		self.__encoder_capsfilter__.link(self.__parser__)
-#		self.__parser_queue__.link(self.__parser__)
 		self.__parser__.link(self.__h264_tee__)
 		self.__h264_tee__.link(self.__payloader__)
-#		self.__payloader_queue__.link(self.__payloader__)
 		self.__payloader__.link(self.__rtsp_tee__)
 		self.__rtsp_tee__.link(self.__sink_queue__)
 		self.__sink_queue__.link(self.__sink__)
@@ -1034,26 +1006,7 @@ class CameraServer(Server):
 		logging.debug(function_name + ": entry")
 		logging.info(name(self) + " started")
 		self.set_logging_level(self.__logging_level__)
-		# NOTE(marcin.sielski): For some reason encoder randomly does not start 
-		# with the image effect configured to hatch. Delay setting it up 
-		# by one second.
-#		image_effect = self.__image_effect__ 
-#		if image_effect == 10:
-#			self.set_image_effect(0, False)
 		self.__pipeline__.set_state(Gst.State.PLAYING)
-#		if image_effect == 10:
-#			logging.debug(
-#				function_name +
-#				": self.__image_effect_lock__.acquire(blocking=True)")
-#			self.__image_effect_lock__.acquire(blocking=True)
-#			GLib.timeout_add_seconds(1, self.__on_image_effect__)
-#			logging.debug(
-#				function_name +
-#				": self.__image_effect_lock__.acquire(blocking=True)")
-#			self.__image_effect_lock__.acquire(blocking=True)
-#			logging.debug(
-#				function_name + ": self.__image_effect_lock__.release()")
-#			self.__image_effect_lock__.release()
 		self.set_stats(self.__stats__)
 		# if streaming is configured
 		if self.__rtsp__:
@@ -1086,21 +1039,6 @@ class CameraServer(Server):
 			self.__restart_lock__.release()
 			logging.debug(function_name + ": self.__restart_lock__.release()")
 		logging.debug(function_name + ": exit")
-
-
-#	def __on_image_effect__(self):
-#
-#		"""
-#		Callback function executed on change media effect to hatch
-#		"""
-#
-#		function_name = "'" + threading.currentThread().name + "'." + \
-#			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
-#		self.set_image_effect(10)
-#		self.__image_effect_lock__.release()
-#		logging.debug(
-#			function_name +
-#			": self.__image_effect_lock__.release()")
 
 
 	def stop(self):
@@ -1163,21 +1101,103 @@ class CameraServer(Server):
 			logging.debug(function_name + ": __restart_lock__.release()")
 		# NOTE(marcin.sielski): Make sure pipeline elements are set to 
 		# Gst.State.NULL so that the object can be safely disposed.
-		if self.__file_queue__ is not None:
-			self.__file_queue__.set_state(Gst.State.NULL)
-			self.__file_queue__ = None
-		if self.__file_rate__ is not None:
-			self.__file_rate__.set_state(Gst.State.NULL)
-			self.__file_rate__ = None
-		if self.__file_converter__ is not None:
-			self.__file_converter__.set_state(Gst.State.NULL)
-			self.__file_converter__ = None
-		if self.__file_encoder__ is not None:
-			self.__file_encoder__.set_state(Gst.State.NULL)
-			self.__file_encoder__ = None
-		if self.__file_sink__ is not None:
-			self.__file_sink__.set_state(Gst.State.NULL)
-			self.__file_sink__ = None
+		
+#		if self.__source__ is not None:
+#			self.__source__.set_state(Gst.State.NULL)
+#			self.__source__.unlink(self.__source_capsfilter__)
+#			self.__pipeline__.remove(self.__source__)
+#			self.__source__ = None
+#			del self.__source__
+#		if self.__source_capsfilter__ is not None:
+#			self.__source_capsfilter__.set_state(Gst.State.NULL)
+#			self.__source_capsfilter__.unlink(self.__raw_tee__)
+#			self.__pipeline__.remove(self.__source_capsfilter__)
+#			self.__source_capsfilter__ = None
+#			self.__source_caps__ = None
+#			del self.__source_caps__
+#		if self.__raw_tee__ is not None:
+#			self.__raw_tee__.set_state(Gst.State.NULL)
+#			self.__raw_tee__.unlink(self.__converter__)
+#			self.__pipeline__.remove(self.__raw_tee__)
+#			self.__raw_tee__ = None
+#			del self.__raw_tee__
+#		if self.__converter__ is not None:
+#			self.__converter__.set_state(Gst.State.NULL)
+#			self.__converter__.unlink(self.__converter_capsfilter__)
+#			self.__pipeline__.remove(self.__converter__)
+#			self.__converter__ = None
+#			del self.__converter__
+#		if self.__converter_capsfilter__ is not None:
+#			self.__converter_capsfilter__.set_state(Gst.State.NULL)
+#			self.__converter_capsfilter__.unlink(self.__encoder__)
+#			self.__pipeline__.remove(self.__converter_capsfilter__)
+#			self.__converter_capsfilter__ = None
+#			self.__converter_caps__ = None
+#			del self.__converter_caps__
+#		if self.__encoder__ is not None:
+#			self.__encoder__.set_state(Gst.State.NULL)
+#			self.__encoder__.unlink(self.__encoder_capsfilter__)
+#			self.__pipeline__.remove(self.__encoder__)
+#			self.__encoder__ = None
+#			del self.__encoder__
+#		if self.__encoder_capsfilter__ is not None:
+#			self.__encoder_capsfilter__.set_state(Gst.State.NULL)
+#			self.__encoder_capsfilter__.unlink(self.__parser__)
+#			self.__pipeline__.remove(self.__encoder_capsfilter__)
+#			self.__encoder_capsfilter__ = None
+#			self.__encoder_caps__ = None
+#			del self.__encoder_caps__
+#		if self.__parser__ is not None:
+#			self.__parser__.set_state(Gst.State.NULL)
+#			self.__parser__.unlink(self.__h264_tee__)
+#			self.__pipeline__.remove(self.__parser__)
+#			self.__parser__ = None
+#			del self.__parser__
+#		if self.__h264_tee__ is not None:
+#			self.__h264_tee__.set_state(Gst.State.NULL)
+#			self.__h264_tee__.unlink(self.__payloader__)
+#			self.__pipeline__.remove(self.__h264_tee__)
+#			self.__h264_tee__ = None
+#			del self.__h264_tee__
+#		if self.__payloader__ is not None:
+#			self.__payloader__.set_state(Gst.State.NULL)
+#			self.__payloader__.unlink(self.__rtsp_tee__)
+#			self.__pipeline__.remove(self.__payloader__)
+#			self.__payloader__ = None
+#			del self.__payloader__
+#		if self.__rtsp_tee__ is not None:
+#			self.__rtsp_tee__.set_state(Gst.State.NULL)
+#			self.__rtsp_tee__.unlink(self.__sink_queue__)
+#			self.__pipeline__.remove(self.__rtsp_tee__)
+#			self.__rtsp_tee__ = None
+#			del self.__rtsp_tee__
+#		if self.__sink_queue__ is not None:
+#			self.__sink_queue__.set_state(Gst.State.NULL)
+#			self.__sink_queue__.unlink(self.__sink__)
+#			self.__pipeline__.remove(self.__sink_queue__)
+#			self.__sink_queue__ = None
+#			del self.__sink_queue__
+#		if self.__sink__ is not None:
+#			self.__sink__.set_state(Gst.State.NULL)
+#			self.__pipeline__.remove(self.__sink__)
+#			self.__sink__ = None
+#			del self.__sink__
+#
+#		if self.__file_queue__ is not None:
+#			self.__file_queue__.set_state(Gst.State.NULL)
+#			self.__file_queue__ = None
+#		if self.__file_rate__ is not None:
+#			self.__file_rate__.set_state(Gst.State.NULL)
+#			self.__file_rate__ = None
+#		if self.__file_converter__ is not None:
+#			self.__file_converter__.set_state(Gst.State.NULL)
+#			self.__file_converter__ = None
+#		if self.__file_encoder__ is not None:
+#			self.__file_encoder__.set_state(Gst.State.NULL)
+#			self.__file_encoder__ = None
+#		if self.__file_sink__ is not None:
+#			self.__file_sink__.set_state(Gst.State.NULL)
+#			self.__file_sink__ = None
 		self.__pipeline__.set_state(Gst.State.NULL)
 		logging.info(name(self) + " stopped")
 		logging.debug(function_name + ": exit")
@@ -1255,8 +1275,13 @@ class CameraServer(Server):
 			self.__file_sink__.set_state(Gst.State.NULL)
 			self.__file_sink__ = None
 		self.__on_store__()
-		if (self.__source__.get_property('annotation-mode') ==	0x0000040C):
+		if (
+			self.__model__ == 'imx219' and 
+			self.__source__.get_property('annotation-mode') ==	0x0000040C
+		):
 			self.__source__.set_property('annotation-mode', 0x00000000)
+		if self.__model__ == 'ov9281':
+			self.set_stats(self.__stats__)
 		logging.info("Recording stopped")
 		# if request was executed in unsafe context
 		if not self.__safe__:
@@ -1411,11 +1436,14 @@ class CameraServer(Server):
 						logging.info("Streaming started")
 					else:
 						if (
-							self.__source__.get_property('annotation-mode') ==
-							0x00000000
+							self.__model__ == 'imx219' and 
+							self.__source__.get_property('annotation-mode') 
+							== 0x00000000
 						):
 							self.__source__.set_property(
 								'annotation-mode', 0x0000040C)
+						if self.__model__ == 'ov9281':
+							self.set_stats(self.__stats__)
 						self.send_keyframe()
 						logging.info("Recording started")
 					# and request was executed in unsafe context
@@ -1449,49 +1477,64 @@ class CameraServer(Server):
 			GstRpiCamSrc: camera source
 		"""
 
-		source = Gst.ElementFactory.make('rpicamsrc', 'camera-source')
-		source.set_property('preview', 0)
-		source.set_property('annotation-mode', self.__stats__)
-		source.set_property(
-			'annotation-text', 
-			'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
-		#source.set_property('bitrate', 25000000)
-		# NOTE(marcin.sielski): camera-timeout property is not available in 
-		# regular GStreamer builds.
-		source.set_property('camera-timeout', self.__camera_timeout__)
+		if self.__model__ == 'imx219':
+			source = Gst.ElementFactory.make('rpicamsrc', 'camera-source')
+			source.set_property('preview', 0)
+			source.set_property('annotation-mode', self.__stats__)
+			source.set_property(
+				'annotation-text', 
+				'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
+			# NOTE(marcin.sielski): camera-timeout property is not available in 
+			# regular GStreamer builds.
+			source.set_property('camera-timeout', self.__camera_timeout__)
 
-		# Quality
+			# Quality
 
-		source.set_property('sensor-mode', self.__sensor_mode__)
+			source.set_property('sensor-mode', self.__sensor_mode__)
 
-		# Effects
+			# Effects
 
-		source.set_property('brightness', self.__brightness__)
-		source.set_property('contrast', self.__contrast__)
-		source.set_property('saturation', self.__saturation__)
-		source.set_property('sharpness', self.__sharpness__)
-		source.set_property('drc', self.__drc__)
-		source.set_property('image_effect', self.__image_effect__)
-		source.set_property('awb-mode', self.__awb_mode__)
-		source.set_property('awb-gain-blue', self.__awb_gain_blue__)
-		source.set_property('awb-gain-red', self.__awb_gain_red__)
+			source.set_property('brightness', self.__brightness__)
+			source.set_property('contrast', self.__contrast__)
+			source.set_property('saturation', self.__saturation__)
+			source.set_property('sharpness', self.__sharpness__)
+			source.set_property('drc', self.__drc__)
+			source.set_property('image_effect', self.__image_effect__)
+			source.set_property('awb-mode', self.__awb_mode__)
+			source.set_property('awb-gain-blue', self.__awb_gain_blue__)
+			source.set_property('awb-gain-red', self.__awb_gain_red__)
 
-		# Controls
+			# Controls
 
-		source.set_property('exposure-mode', self.__exposure_mode__)
-		source.set_property('metering-mode', self.__metering_mode__)
-		source.set_property('exposure-compensation',
-		self.__exposure_compensation__)
-		source.set_property('iso', self.__iso__)
-		source.set_property('shutter-speed', self.__shutter_speed__)
-		source.set_property('video-stabilisation', self.__video_stabilisation__)
+			source.set_property('exposure-mode', self.__exposure_mode__)
+			source.set_property('metering-mode', self.__metering_mode__)
+			source.set_property('exposure-compensation',
+			self.__exposure_compensation__)
+			source.set_property('iso', self.__iso__)
+			source.set_property('shutter-speed', self.__shutter_speed__)
+			source.set_property('video-stabilisation', self.__video_stabilisation__)
 
-		# Orientation
+			# Orientation
 
-		source.set_property('rotation', self.__rotation__)
-		source.set_property('hflip', self.__hflip__)
-		source.set_property('vflip', self.__vflip__)
-		source.set_property('video-direction', self.__video_direction__)
+			source.set_property('rotation', self.__rotation__)
+			source.set_property('hflip', self.__hflip__)
+			source.set_property('vflip', self.__vflip__)
+			source.set_property('video-direction', self.__video_direction__)
+
+		if self.__model__ == 'ov9281':
+
+			source = Gst.ElementFactory.make('arducamsrc', 'camera-source')
+
+			# Controls
+
+			source.set_property('exposure-mode', self.__exposure_mode__)
+			source.set_property('exposure', self.__exposure__)
+
+			# Orientation
+
+			source.set_property('hflip', self.__hflip__)
+			source.set_property('vflip', self.__vflip__)
+
 
 		return source
 
@@ -1567,38 +1610,133 @@ class CameraServer(Server):
 		"""
 
 		self.__sensor_mode__ = sensor_mode
-		if self.__sensor_mode__ == 0:
-			self.__framerate__ = 15
-			self.__width__ = 800
-			self.__height__ = 608
-		if self.__sensor_mode__ == 1:
-			self.__framerate__ = 15
-			self.__width__ = 960
-			self.__height__ = 544
-		if self.__sensor_mode__ == 2:
-			self.__framerate__ = 15
-			self.__width__ = 800
-			self.__height__ = 608
-		if self.__sensor_mode__ == 3:
-			self.__framerate__ = 15
-			self.__width__ = 800
-			self.__height__ = 608
-		if self.__sensor_mode__ == 4:
-			self.__framerate__ = 15
-			self.__width__ = 800
-			self.__height__ = 608
-		if self.__sensor_mode__ == 5:
-			self.__framerate__ = 15
-			self.__width__ = 960
-			self.__height__ = 544
-		if self.__sensor_mode__ == 6:
-			self.__framerate__ = 40
-			self.__width__ = 960
-			self.__height__ = 544
-		if self.__sensor_mode__ == 7:
-			self.__framerate__ = 40
-			self.__width__ = 640
-			self.__height__ = 480
+		if self.__model__ == 'imx219':
+			if self.__sensor_mode__ == 0:
+				self.__framerate__ = 15
+				self.__width__ = 800
+				self.__height__ = 608
+			if self.__sensor_mode__ == 1:
+				self.__framerate__ = 15
+				self.__width__ = 960
+				self.__height__ = 544
+			if self.__sensor_mode__ == 2:
+				self.__framerate__ = 15
+				self.__width__ = 800
+				self.__height__ = 608
+			if self.__sensor_mode__ == 3:
+				self.__framerate__ = 15
+				self.__width__ = 800
+				self.__height__ = 608
+			if self.__sensor_mode__ == 4:
+				self.__framerate__ = 15
+				self.__width__ = 800
+				self.__height__ = 608
+			if self.__sensor_mode__ == 5:
+				self.__framerate__ = 15
+				self.__width__ = 960
+				self.__height__ = 544
+			if self.__sensor_mode__ == 6:
+				self.__framerate__ = 40
+				self.__width__ = 960
+				self.__height__ = 544
+			if self.__sensor_mode__ == 7:
+				self.__framerate__ = 40
+				self.__width__ = 640
+				self.__height__ = 480
+		if self.__model__ == 'ov9281':
+			if self.__sensor_mode__ == 0:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 1:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 720
+			if self.__sensor_mode__ == 2:
+				self.__framerate__ = 30
+				self.__width__ = 640
+				self.__height__ = 400
+			if self.__sensor_mode__ == 3:
+				self.__framerate__ = 30
+				self.__width__ = 320
+				self.__height__ = 200
+			if self.__sensor_mode__ == 4:
+				self.__framerate__ = 30
+				self.__width__ = 160
+				self.__height__ = 100
+			if self.__sensor_mode__ == 5:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 6:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 7:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 8:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 720
+			if self.__sensor_mode__ == 9:
+				self.__framerate__ = 30
+				self.__width__ = 640
+				self.__height__ = 400
+			if self.__sensor_mode__ == 10:
+				self.__framerate__ = 30
+				self.__width__ = 320
+				self.__height__ = 200
+			if self.__sensor_mode__ == 11:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 12:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 13:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 720
+			if self.__sensor_mode__ == 14:
+				self.__framerate__ = 30
+				self.__width__ = 640
+				self.__height__ = 400
+			if self.__sensor_mode__ == 15:
+				self.__framerate__ = 30
+				self.__width__ = 320
+				self.__height__ = 200
+			if self.__sensor_mode__ == 16:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 17:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 720
+			if self.__sensor_mode__ == 18:
+				self.__framerate__ = 60
+				self.__width__ = 640
+				self.__height__ = 400
+			if self.__sensor_mode__ == 19:
+				self.__framerate__ = 80
+				self.__width__ = 320
+				self.__height__ = 200
+			if self.__sensor_mode__ == 20:
+				self.__framerate__ = 80
+				self.__width__ = 160
+				self.__height__ = 100
+			if self.__sensor_mode__ == 21:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+			if self.__sensor_mode__ == 22:
+				self.__framerate__ = 30
+				self.__width__ = 1280
+				self.__height__ = 800
+
 		self.restart()
 
 
@@ -1751,7 +1889,7 @@ class CameraServer(Server):
 		"""
 
 		self.__exposure_mode__ = exposure_mode
-		if self.__exposure_mode__ == 0:
+		if self.__exposure_mode__ == 0 and self.__model__ == 'imx219':
 			self.restart()
 		else:
 			self.__source__.set_property('exposure-mode',
@@ -1826,6 +1964,19 @@ class CameraServer(Server):
 				'video-stabilisation', self.__video_stabilisation__)
 		else:			
 			self.restart()
+
+
+	def set_exposure(self, exposure):
+
+		"""
+		Set exposure mode
+
+		Args:
+			exposure_mode (int): exposure mode
+		"""
+
+		self.__exposure__ = exposure
+		self.__source__.set_property('exposure', self.__exposure__)
 
 
 	# Orientation
@@ -2049,20 +2200,44 @@ class CameraServer(Server):
 		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": entry")
-		if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
-			self.__stats_id__ = 0
-			logging.debug(function_name + ": false")
-			return False
+		if self.__model__ == 'imx219':
+			if self.__stats__ == 0x0000040C or self.__stats__ == 0x00000000:
+				self.__stats_id__ = 0
+				logging.debug(function_name + ": false")
+				return False
 
-		self.__source__.set_property(
-			'annotation-text', 
-			'CPU: ' + str(psutil.cpu_percent()) + 
-			'% MEM: ' + str(psutil.virtual_memory().percent) + 
-			'% TMP: ' + str(round(CPUTemperature().temperature, 1)) + 
-			'C DSK: ' + str(round(DiskUsage().usage, 1)) + 
-			'% THR: ' + subprocess.check_output(
-				['vcgencmd', 'get_throttled']).decode('utf-8').replace(
-					'throttled=','').strip() + '\n\n' +self.__model__ + ' ')
+			self.__source__.set_property(
+				'annotation-text', 
+				'CPU: ' + str(psutil.cpu_percent()) + 
+				'% MEM: ' + str(psutil.virtual_memory().percent) + 
+				'% TMP: ' + str(round(CPUTemperature().temperature, 1)) + 
+				'C DSK: ' + str(round(DiskUsage().usage, 1)) + 
+				'% THR: ' + subprocess.check_output(
+					['vcgencmd', 'get_throttled']).decode('utf-8').replace(
+						'throttled=','').strip() + '\n\n' + self.__model__ + 
+						' ')
+		if self.__model__ == 'ov9281':
+			tm = time.localtime()
+			if self.__record__ and self.__stats__ == 0x00000000:
+				self.__overlay__.set_property(
+					'text', str(tm.tm_hour) + ':' + str(tm.tm_min).zfill(2) + 
+					':' + str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/' + 
+					str(tm.tm_mday) + '/' + str(tm.tm_year))
+			else:
+				self.__overlay__.set_property(
+					'text',
+					'CPU: ' + str(psutil.cpu_percent()) + 
+					'% MEM: ' + str(psutil.virtual_memory().percent) + 
+					'% TMP: ' + str(round(CPUTemperature().temperature, 1)) + 
+					'C DSK: ' + str(round(DiskUsage().usage, 1)) + 
+					'% THR: ' + subprocess.check_output(
+						['vcgencmd', 'get_throttled']).decode('utf-8').replace(
+							'throttled=','').strip() + '\n' +	str(tm.tm_hour) 
+							+ ':' + str(tm.tm_min).zfill(2) + ':' + 
+							str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/'
+							+ str(tm.tm_mday) + '/' + str(tm.tm_year) + ' ' +
+							self.__model__ 
+			)
 		logging.debug(function_name + ": true")
 		return True
 		
@@ -2075,20 +2250,51 @@ class CameraServer(Server):
 		Args:
 			stats (int): stats to overlay on the video stream
 		"""
-		
-		if self.__stats_id__ != 0:
-			GLib.source_remove(self.__stats_id__)
-			self.__stats_id__ = 0
-			self.__source__.set_property(
-				'annotation-text', 
-				'Copyright (c) 2021 Marcin Sielski\n\n' + self.__model__ + ' ')
-		if self.__record__ and stats == 0x00000000:
-			self.__stats__ = 0x0000040C
-		else:
-			self.__stats__ = stats
-			self.__stats_id__ = GLib.timeout_add_seconds(1, self.__on_stats__)
+		if self.__model__ == 'imx219':
+			if self.__stats_id__ != 0:
+				GLib.source_remove(self.__stats_id__)
+				self.__stats_id__ = 0
+				self.__source__.set_property(
+					'annotation-text', 
+					'Copyright (c) 2021 Marcin Sielski\n\n' + 
+					self.__model__ + ' ')
+			if self.__record__ and stats == 0x00000000:
+				self.__stats__ = 0x0000040C
+			else:
+				self.__stats__ = stats
+				self.__stats_id__ = GLib.timeout_add_seconds(
+						1, self.__on_stats__)
 
-		self.__source__.set_property('annotation-mode', self.__stats__)
+			self.__source__.set_property('annotation-mode', self.__stats__)
+		if self.__model__ == 'ov9281':
+			if self.__stats_id__ != 0:
+				GLib.source_remove(self.__stats_id__)
+				self.__stats_id__ = 0
+			if self.__record__ and stats == 0x00000000:
+				self.__stats__ = stats
+				tm = time.localtime()
+				self.__overlay__.set_property(
+					'text', str(tm.tm_hour) + ':' + str(tm.tm_min).zfill(2) + 
+					':' + str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/' + 
+					str(tm.tm_mday) + '/' + str(tm.tm_year))
+				self.__overlay__.set_property('silent', False)
+				self.__stats_id__ = GLib.timeout_add_seconds(
+						1, self.__on_stats__)
+			else:
+				self.__stats__ = stats
+				tm = time.localtime()
+				if stats == 0x00000000 or (stats == 0x00000000 and not self.__record__):
+					self.__overlay__.set_property('silent', True)
+				else:
+					self.__overlay__.set_property(
+					'text', 'Copyright (c) 2021 Marcin Sielski\n' +
+					str(tm.tm_hour) + ':' + 
+					str(tm.tm_min).zfill(2) + ':' + str(tm.tm_sec).zfill(2) +
+					' ' + str(tm.tm_mon) + '/' + str(tm.tm_mday) + '/' + 
+					str(tm.tm_year) + ' ' + self.__model__)
+					self.__overlay__.set_property('silent', False)
+					self.__stats_id__ = GLib.timeout_add_seconds(
+						1, self.__on_stats__)
 
 
 	def __enable_disable_rtsp__(self, pad, info):
@@ -2304,10 +2510,9 @@ class CameraServer(Server):
 			self.__file_queue__ = Gst.ElementFactory.make('queue', 'file-queue')
 			self.__file_queue__.set_property(
 				'max-size-bytes', 0)
-#				3*self.__framerate__*self.__width__*self.__height__)
 			self.__file_queue__.set_property(
-				'max-size-buffers',  0)#3*self.__framerate__*200)
-			self.__file_queue__.set_property('max-size-time',  0)#3*1000000000)
+				'max-size-buffers',  0)
+			self.__file_queue__.set_property('max-size-time',  0)
 			if self.__format__:
 				if self.__throughput__ > 0:
 					#self.__file_queue__.set_property('leaky', 1)
@@ -2548,7 +2753,7 @@ class CameraServer(Server):
 		Args:
 			safe (bool): indicate if function is executed in the safe context
 		"""
-
+		#snapshot1 = tracemalloc.take_snapshot()
 		function_name = "'" + threading.currentThread().name + "'." + \
 			type(self).__name__ + '.' + inspect.currentframe().f_code.co_name
 		logging.debug(function_name + ": safe=" + str(safe))
@@ -2692,6 +2897,10 @@ class CameraServer(Server):
 			self.__main_lock__.release()
 			logging.debug(function_name + ": self.__main_lock__.release()")
 		logging.debug(function_name + ": exit")
+		#snapshot2 = tracemalloc.take_snapshot()
+		#top_stats = snapshot2.compare_to(snapshot1, 'lineno')
+		#for stat in top_stats[:10]:
+		#	print(stat)
 
 
 	def set_format(self, format):
@@ -2983,8 +3192,9 @@ if __name__ == '__main__':
 		with picamera.PiCamera() as camera:
 			logging.info("'" + camera.revision + "' camera detected")
 	except:
-		logging.critical("Unable to acquire camera")
-		exit(-1)
+		if camera_revision() != "ov9281":
+			logging.critical("Unable to acquire camera")
+			exit(-1)
 
 	camera_service.start(args)
 

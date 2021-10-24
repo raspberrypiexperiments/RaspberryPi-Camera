@@ -51,8 +51,8 @@ SOFTWARE.
 			<div class="row fixed-bottom">
 				<div class="accordion col" style="width: 100%" id="management">
 					<!--<div class="card text-white bg-dark">-->
-					<div class="accordion-item text-white bg-dark">
-		  				<div class="accordion-header" id="quality">
+					<div class="accordion-item text-white bg-dark" id="quality">
+		  				<div class="accordion-header" id="quality_header">
 							<h2 class="mb-0">
 			  					<button class="btn btn-dark btn-block collapsed btn-lg" style="width: 100%; text-align: start;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
 									Quality 
@@ -63,17 +63,21 @@ SOFTWARE.
 			  					</button>
 							</h2>
 		  				</div>	  
-		  				<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="quality" data-bs-parent="#management">
+		  				<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="quality_header" data-bs-parent="#management">
 							<div class="accordion-body">
 								<div class="form-group">
 								<button type="button" class="btn btn-lg btn-dark hide" disabled id="resolution_button">Resolution</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="resolution" onchange="change('resolution')" id="resolution">
+									<option value="1280x800" id="wxga">1280x800 16:10</option>
 									<option value="1280x720" id="hd">1280x720 16:9</option>
 									<option value="1024x768" id="xga">1024x768 4:3</option>
 									<option value="960x544" id="qhd">&nbsp;&nbsp;960x544 16:9</option>
 									<option value="800x608" id="svga" selected>&nbsp;&nbsp;800x608 4:3</option>
 									<option value="800x448" id="wvga">&nbsp;&nbsp;800x448 16:9</option>
 									<option value="640x480" id="vga">&nbsp;&nbsp;640x480 4:3</option>
+									<option value="640x400" id="st">&nbsp;&nbsp;640x400 16:10</option>
+									<option value="320x200" id="cga">&nbsp;&nbsp;320x200 16:10</option>
+									<option value="160x100" id="lynx">&nbsp;&nbsp;160x100 16:10</option>
 								</select>	
 							</div>		
 								<button type="button" class="btn btn-lg btn-dark" disabled>Bitrate Mode</button>
@@ -94,40 +98,45 @@ SOFTWARE.
 								<button type="button" class="btn btn-lg btn-dark hide" id="zoom_out_button" onclick="zoom_out()"><i class="fas fa-minus"></i></button>
 								<button type="button" class="btn btn-lg btn-dark hide" id="sensor_mode_button" disabled>Sensor Mode</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="sensor_mode" onchange="change('sensor_mode')" id="sensor_mode">
-									<option value="7" id="sensor_mode_7"></option>
-									<option value="6" id="sensor_mode_6"></option>
-									<option value="5" id="sensor_mode_5"></option>
-									<option value="4" id="sensor_mode_4"></option>
-									<option value="3" id="sensor_mode_3"></option>
-									<option value="2" id="sensor_mode_2"></option>
-									<option value="1" id="sensor_mode_1"></option>
-									<option value="0" id="sensor_mode_0" selected></option>
+									<option value="22" id="sensor_mode_22" class="hide"></option>
+									<option value="21" id="sensor_mode_21" class="hide"></option>
+									<option value="20" id="sensor_mode_20" class="hide"></option>
+									<option value="19" id="sensor_mode_19" class="hide"></option>
+									<option value="18" id="sensor_mode_18" class="hide"></option>
+									<option value="17" id="sensor_mode_17" class="hide"></option>
+									<option value="16" id="sensor_mode_16" class="hide"></option>
+									<option value="15" id="sensor_mode_15" class="hide"></option>
+									<option value="14" id="sensor_mode_14" class="hide"></option>
+									<option value="13" id="sensor_mode_13" class="hide"></option>
+									<option value="12" id="sensor_mode_12" class="hide"></option>
+									<option value="11" id="sensor_mode_11" class="hide"></option>
+									<option value="10" id="sensor_mode_10" class="hide"></option>
+									<option value="9" id="sensor_mode_9" class="hide"></option>
+									<option value="8" id="sensor_mode_8" class="hide"></option>
+									<option value="7" id="sensor_mode_7" class="hide"></option>
+									<option value="6" id="sensor_mode_6" class="hide"></option>
+									<option value="5" id="sensor_mode_5" class="hide"></option>
+									<option value="4" id="sensor_mode_4" class="hide"></option>
+									<option value="3" id="sensor_mode_3" class="hide"></option>
+									<option value="2" id="sensor_mode_2" class="hide"></option>
+									<option value="1" id="sensor_mode_1" class="hide"></option>
+									<option value="0" id="sensor_mode_0" class="hide" selected></option>
 								</select>
 								<button type="button" class="btn btn-lg btn-dark hide" disabled id="framerate_button">Framerate</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="framerate" onchange="change('framerate')" id="framerate">
-									<option value="50">50</option>
-									<option value="45">45</option>
-									<option value="40">40</option>
-									<option value="35">35</option>
-									<option value="30">30</option>
-									<option value="25">25</option>
-									<option value="20">20</option>
-									<option value="15" selected>15</option>
-									<option value="10">10</option>
-									<option value="5">&nbsp;&nbsp;5</option>
 								</select>	
 							</div>
 						</div>
 					</div>
-					<div class="accordion-item text-white bg-dark">
-						<div class="accordion-header" id="effects">
+					<div class="accordion-item text-white bg-dark hide" id="effects">
+						<div class="accordion-header" id="effects_header">
 							<h2 class="mb-0">
 								<button class="btn btn-dark btn-block collapsed btn-lg" style="width: 100%; text-align: start;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
 									Effects
 								</button>
 							</h2>
 						</div>	  
-						<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="effects" data-bs-parent="#management">
+						<div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="effects_header" data-bs-parent="#management">
 							<div class="accordion-body">
 								<button type="button" class="btn btn-lg btn-dark" disabled>Brightness</button>
 								<select class="form-select form-control-lg bg-dark text-light" aria-label="brightness" onchange="change('brightness')" id="brightness">
@@ -302,41 +311,41 @@ SOFTWARE.
 							</div>
 						</div>
 					</div>
-					<div class="accordion-item text-white bg-dark">
-						<div class="accordion-header" id="settings">
+					<div class="accordion-item text-white bg-dark" id="settings">
+						<div class="accordion-header" id="settings_header">
 							<h2 class="mb-0">
 								<button class="btn btn-dark btn-block collapsed btn-lg" style="width: 100%; text-align: start;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
 									Settings 
 								</button>
 							</h2>
 						</div>	  
-						<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="settings" data-bs-parent="#management">
+						<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="settings_header" data-bs-parent="#management">
 							<div class="accordion-body">
 								<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Mode</button>
 								<select class="form-select form-control-lg bg-dark text-light" aria-label="exposure_mode" onchange="change('exposure_mode')" id="exposure_mode">
-									<option value="12">fireworks</option>
-									<option value="11">antishake</option>
-									<option value="10">fixedfps</option>
-									<option value="9">verylong</option>
-									<option value="8">beach</option>
-									<option value="7">snow</option>
-									<option value="6">sports</option>
-									<option value="5">spotlight</option>
-									<option value="4">backlight</option>
-									<option value="3">nightpreview</option>
-									<option value="2">night</option>
-									<option value="1" selected>auto</option>
-									<option value="0">off</option>
+									<option id="fireworks" class="hide" value="12">fireworks</option>
+									<option id="antishake" class="hide" value="11">antishake</option>
+									<option id="fixedfps" class="hide" value="10">fixedfps</option>
+									<option id="verylong" class="hide" value="9">verylong</option>
+									<option id="beach" class="hide" value="8">beach</option>
+									<option id="snow" class="hide" value="7">snow</option>
+									<option id="sports" class="hide" value="6">sports</option>
+									<option id="spotlight" class="hide" value="5">spotlight</option>
+									<option id="backlight" class="hide" value="4">backlight</option>
+									<option id="nightpreview" class="hide" value="3">nightpreview</option>
+									<option id="night" class="hide" value="2">night</option>
+									<option id="auto" value="1" selected>auto</option>
+									<option id="off" value="0">off</option>
 								</select>	
-								<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Metering Mode</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="metering_mode" onchange="change('metering_mode')" id="metering_mode">
+								<button type="button" class="btn btn-lg btn-dark hide" id="metering_mode_button" disabled>Exposure Metering Mode</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="metering_mode" onchange="change('metering_mode')" id="metering_mode">
 									<option value="3">matrix</option>
 									<option value="2">backlist</option>
 									<option value="1">spot</option>
 									<option value="0" selected>average</option>
 								</select>
-								<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Compensation</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="exposure_compensation" onchange="change('exposure_compensation')" id="exposure_compensation">
+								<button type="button" class="btn btn-lg btn-dark hide" id="exposure_compensation_button" disabled>Exposure Compensation</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="exposure_compensation" onchange="change('exposure_compensation')" id="exposure_compensation">
 									<option value="10">&nbsp;10</option>
 									<option value="9">&nbsp;&nbsp;&nbsp;9</option>
 									<option value="8">&nbsp;&nbsp;&nbsp;8</option>
@@ -359,8 +368,8 @@ SOFTWARE.
 									<option value="-9">&nbsp;&nbsp;-9</option>
 									<option value="-10">-10</option>
 								</select>	
-								<button type="button" class="btn btn-lg btn-dark" disabled>ISO</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="iso" onchange="change('iso')" id="iso">
+								<button type="button" class="btn btn-lg btn-dark hide" id="iso_button" disabled>ISO</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="iso" onchange="change('iso')" id="iso">
 									<option value="800">800</option>
 									<option value="700">700</option>
 									<option value="600">600</option>
@@ -371,8 +380,8 @@ SOFTWARE.
 									<option value="100">100</option>
 									<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;0</option>
 								</select>	
-								<button type="button" class="btn btn-lg btn-dark" disabled>Shutter Speed</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="shutter_speed" onchange="change('shutter_speed')" id="shutter_speed">
+								<button type="button" class="btn btn-lg btn-dark hide" id="shutter_speed_button" disabled>Shutter Speed</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="shutter_speed" onchange="change('shutter_speed')" id="shutter_speed">
 									<option value="500000">500 ms</option>
 									<option value="400000">400 ms</optio>
 									<option value="300000">300 ms</option>
@@ -398,23 +407,49 @@ SOFTWARE.
 									<option value="1000">&nbsp;&nbsp;&nbsp;&nbsp;1 ms</option>
 									<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;auto</option>
 								</select>	
-								<button type="button" class="btn btn-lg btn-dark" disabled>Video Stabilisation</button>
-								<button type="button" class="btn btn-lg btn-dark" aria-label="video_stabilisation" onclick="change('video_stabilisation')"  id="video_stabilisation" value="0"><i class="fas fa-water"></i></button>
+								<button type="button" class="btn btn-lg btn-dark hide" id="video_stabilisation_button" disabled>Video Stabilisation</button>
+								<button type="button" class="btn btn-lg btn-dark hide" aria-label="video_stabilisation" onclick="change('video_stabilisation')"  id="video_stabilisation" value="0"><i class="fas fa-water"></i></button>
+								<button type="button" class="btn btn-lg btn-dark hide" id="exposure_button" disabled>Exposure</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="exposure" onchange="change('exposure')" id="exposure">
+									<option value="30000">&nbsp;&nbsp;&nbsp;&nbsp;30 s</option>
+									<option value="20000">&nbsp;&nbsp;&nbsp;&nbsp;20 s</option>
+									<option value="10000">&nbsp;&nbsp;&nbsp;&nbsp;10 s</option>
+									<option value="9000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;9 s</option>
+									<option value="8000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8 s</option>
+									<option value="7000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7 s</option>
+									<option value="6000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6 s</option>
+									<option value="5000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 s</option>
+									<option value="4000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4 s</option>
+									<option value="3000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3 s</option>
+									<option value="2000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2 s</option>
+									<option value="1000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1 s</option>
+									<option value="900">900 us</option>
+									<option value="800">800 us</option>
+									<option value="700">700 us</option>
+									<option value="681" selected>default</option>
+									<option value="600">600 us</option>
+									<option value="500">500 us</option>
+									<option value="400">400 us</option>
+									<option value="300">300 us</option>
+									<option value="200">200 us</option>
+									<option value="100">100 us</option>
+									<option value="1">minimum</option>
+								</select>	
 							</div>
 						</div>
 					</div>
-					<div class="accordion-item text-white bg-dark">
-						<div class="accordion-header" id="orientation">
+					<div class="accordion-item text-white bg-dark" id="orientation">
+						<div class="accordion-header" id="orientation_header">
 							<h2 class="mb-0">
 								<button class="btn btn-dark btn-block collapsed btn-lg" style="width: 100%; text-align: start;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
 									Orientation 
 								</button>
 							</h2>
 						</div>	  
-						<div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="orientation" data-bs-parent="#management">
+						<div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="orientation_header" data-bs-parent="#management">
 							<div class="accordion-body">
-								<button type="button" class="btn btn-lg btn-dark" disabled>Rotation</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="rotation" onchange="change('rotation')" id="rotation">
+								<button type="button" class="btn btn-lg btn-dark hide" id="rotation_button" disabled>Rotation</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="rotation" onchange="change('rotation')" id="rotation">
 									<option value="270">270</option>
 									<option value="180">180</option>
 									<option value="90">&nbsp;&nbsp;90</option>
@@ -424,8 +459,8 @@ SOFTWARE.
 								<button type="button" class="btn btn-lg btn-dark" aria-label="hflip" onclick="change('hflip')" id="hflip" value="0"><i class="fas fa-arrows-alt-h"></i></button>
 								<button type="button" class="btn btn-lg btn-dark" disabled>VFlip</button>
 								<button type="button" class="btn btn-lg btn-dark" aria-label="vflip" onclick="change('vflip')" id="vflip" value="0"><i class="fas fa-arrows-alt-v"></i></button>
-								<button type="button" class="btn btn-lg btn-dark" disabled>Video Direction</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="video_direction" onchange="change('video_direction')" id="video_direction">
+								<button type="button" class="btn btn-lg btn-dark hide" id="video_direction_button" disabled>Video Direction</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="video_direction" onchange="change('video_direction')" id="video_direction">
 									<!-- rotations below are either not supported by the gst-rpicamsrc or used internally
 									<option value="9">custom</option>
 									<option value="8">auto</option>-->
@@ -441,15 +476,15 @@ SOFTWARE.
 							</div>
 						</div>
 					</div>
-					<div class="accordion-item text-white bg-dark">
-						<div class="accordion-header" id="controls">
+					<div class="accordion-item text-white bg-dark" id="header">
+						<div class="accordion-header" id="controls_header">
 							<h2 class="mb-0">
 								<button class="btn btn-dark btn-block collapsed btn-lg" style="width: 100%; text-align: start;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFour">
 									Controls 
 								</button>
 							</h2>
 						</div>	  
-						<div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="controls" data-bs-parent="#management">
+						<div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="controls_header" data-bs-parent="#management">
 							<div class="accordion-body">
 								<button type="button" class="btn btn-lg btn-dark" disabled>Logging Level</button>
 								<select class="form-select form-control-lg bg-dark text-light" aria-label="logging_level" onchange="change('logging_level')" id="logging_level">		

@@ -3,8 +3,9 @@
 ## Overview
 
 This repository includes:
-* Camera Service - service that directly controls Pi Camera Module v2 on 
-Raspberry Pi. Camera Service requires custom build of the of the GStreamer,
+* Camera Service - service that directly controls Raspberry Pi Camera Module v2 
+or Arducam ov9281 on Raspberry Pi. Camera Service requires custom build of the 
+of the GStreamer,
 * Camera Client - WebRTC application that enables streaming of the video from
 Camera Service to the browser. Camera Client enables to control most of the Pi 
 Camera Module features such as streaming quality parameters, video effects, 
@@ -13,6 +14,7 @@ __*imx219*__ imager settings, video orientation, recording controls.
 ## Dependencies
 
 This repository depends on:
+* [RapsberryPi-Arducam](https://github.com/raspberrypiexperiments/RaspberryPi-Arducam),
 * [RaspberryPi-Janus-Gateway](https://github.com/raspberrypiexperiments/RaspberryPi-Janus-Gateway),
 * [RaspberryPi-GStreamer-1.0](https://github.com/raspberrypiexperiments/RaspberryPi-GStreamer-1.0).
 
@@ -38,6 +40,11 @@ This repository depends on:
 * Raspberry Pi Zero W,
 * Raspberry Pi 3B,
 * Raspberry Pi 4B.
+
+## Konwn supported Camera Modules
+
+* Rapsberry Pi Camera Module v2,
+* Arducam ov9281 B0162.
 
 ## Installation
 

@@ -151,5 +151,8 @@ status:
 stop:
 	sudo systemctl stop camera
 
+restart:
+	sudo systemctl restart camera
+
 run:
 	python3 src/camera.py
