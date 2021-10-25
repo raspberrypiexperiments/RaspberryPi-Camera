@@ -2236,6 +2236,7 @@ class CameraServer(Server):
 					':' + str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/' + 
 					str(tm.tm_mday) + '/' + str(tm.tm_year))
 			else:
+				shutter_speed = self.__source__.get_property('shutter-speed')
 				self.__overlay__.set_property(
 					'text',
 					'CPU: ' + str(psutil.cpu_percent()) + 
@@ -2248,7 +2249,8 @@ class CameraServer(Server):
 							' ' + str(tm.tm_hour) + ':' + 
 							str(tm.tm_min).zfill(2) + ':' + 
 							str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/'
-							+ str(tm.tm_mday) + '/' + str(tm.tm_year)				 
+							+ str(tm.tm_mday) + '/' + str(tm.tm_year) + '\n' +
+							'Shutter Speed: ' + str(shutter_speed)			 
 			)
 		logging.debug(function_name + ": true")
 		return True
