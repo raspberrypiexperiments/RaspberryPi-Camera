@@ -1895,6 +1895,8 @@ class CameraServer(Server):
 		else:
 			self.__source__.set_property('exposure-mode',
 			self.__exposure_mode__)
+			if self.__exposure_mode__ == 0 and self.__model__ == 'ov9281':
+				self.set_exposure(self.__exposure__)
 
 
 	def set_metering_mode(self, metering_mode):
