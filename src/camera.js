@@ -1004,11 +1004,44 @@ function display(data) {
 		$('#iso_button').removeClass('hide').show()
 		$('#iso').removeClass('hide').show()
 		$('#iso').val(data.iso);
-		$('#shutter_speed_button').removeClass('hide').show()
-		$('#shutter_speed').removeClass('hide').show()
-		$('#shutter_speed').val(data.shutter_speed);
-		$('#video_stabilisation_button').removeClass('hide').show()
-		$('#video_stabilisation').removeClass('hide').show()
+		$('#shutter_speed').html(' \
+			<option value="500000">500 ms</option> \
+			<option value="400000">400 ms</optio> \
+			<option value="300000">300 ms</option> \
+			<option value="200000">200 ms</option> \
+			<option value="100000">100 ms</option> \
+			<option value="90000">&nbsp;&nbsp;90 ms</option> \
+			<option value="80000">&nbsp;&nbsp;80 ms</option> \
+			<option value="70000">&nbsp;&nbsp;70 ms</option> \
+			<option value="60000">&nbsp;&nbsp;60 ms</option> \
+			<option value="50000">&nbsp;&nbsp;50 ms</option> \
+			<option value="40000">&nbsp;&nbsp;40 ms</option> \
+			<option value="30000">&nbsp;&nbsp;30 ms</option> \
+			<option value="20000">&nbsp;&nbsp;20 ms</option> \
+			<option value="10000">&nbsp;&nbsp;10 ms</option> \
+			<option value="9000">&nbsp;&nbsp;&nbsp;&nbsp;9 ms</option> \
+			<option value="8000">&nbsp;&nbsp;&nbsp;&nbsp;8 ms</option> \
+			<option value="7000">&nbsp;&nbsp;&nbsp;&nbsp;7 ms</option> \
+			<option value="6000">&nbsp;&nbsp;&nbsp;&nbsp;6 ms</option> \
+			<option value="5000">&nbsp;&nbsp;&nbsp;&nbsp;5 ms</option> \
+			<option value="4000">&nbsp;&nbsp;&nbsp;&nbsp;4 ms</option> \
+			<option value="3000">&nbsp;&nbsp;&nbsp;&nbsp;3 ms</option> \
+			<option value="2000">&nbsp;&nbsp;&nbsp;&nbsp;2 ms</option> \
+			<option value="1000">&nbsp;&nbsp;&nbsp;&nbsp;1 ms</option> \
+			<option value="900">900 us</option> \
+			<option value="800">800 us</option> \
+			<option value="700">700 us</option> \
+			<option value="600">600 us</option> \
+			<option value="500">500 us</option> \
+			<option value="400">400 us</option> \
+			<option value="300">300 us</option> \
+			<option value="200">200 us</option> \
+			<option value="100">100 us</option> \
+			<option value="1">minimum</option> \
+			<option value="0">auto</option> \
+		');
+		$('#video_stabilisation_button').removeClass('hide').show();
+		$('#video_stabilisation').removeClass('hide').show();
 		$('#video_stabilisation').val(data.video_stabilisation);
 		if (data.video_stabilisation == '0') {
 			$('#video_stabilisation').removeClass('active');
@@ -1021,10 +1054,36 @@ function display(data) {
 		}
 	}
 	if (data.model == 'ov9281') {
-		$('#exposure_button').removeClass('hide').show()
-		$('#exposure').removeClass('hide').show()
-		$('#exposure').val(data.exposure);
+		$('#shutter_speed').html(' \
+			<option value="30000">&nbsp;&nbsp;30 ms</option> \
+			<option value="20000">&nbsp;&nbsp;20 ms</option> \
+			<option value="10000">&nbsp;&nbsp;10 ms</option> \
+			<option value="9000">&nbsp;&nbsp;&nbsp;&nbsp;9 ms</option> \
+			<option value="8000">&nbsp;&nbsp;&nbsp;&nbsp;8 ms</option> \
+			<option value="7000">&nbsp;&nbsp;&nbsp;&nbsp;7 ms</option> \
+			<option value="6000">&nbsp;&nbsp;&nbsp;&nbsp;6 ms</option> \
+			<option value="5000">&nbsp;&nbsp;&nbsp;&nbsp;5 ms</option> \
+			<option value="4000">&nbsp;&nbsp;&nbsp;&nbsp;4 ms</option> \
+			<option value="3000">&nbsp;&nbsp;&nbsp;&nbsp;3 ms</option> \
+			<option value="2000">&nbsp;&nbsp;&nbsp;&nbsp;2 ms</option> \
+			<option value="1000">&nbsp;&nbsp;&nbsp;&nbsp;1 ms</option> \
+			<option value="900">900 us</option> \
+			<option value="800">800 us</option> \
+			<option value="700">700 us</option> \
+			<option value="600">600 us</option> \
+			<option value="500">500 us</option> \
+			<option value="400">400 us</option> \
+			<option value="300">300 us</option> \
+			<option value="200">200 us</option> \
+			<option value="100">100 us</option> \
+			<option value="1">minimum</option> \
+			<option value="0">auto</option> \
+		');
+		$('#gain_button').removeClass('hide').show();
+		$('#gain').removeClass('hide').show();
+		$('#gain').val(data.gain);
 	}
+	$('#shutter_speed').val(data.shutter_speed);
 	
 	// Orientation
 

@@ -410,9 +410,9 @@ class HTTPSServer(WSGIServer):
 		if 'video_stabilisation' in req.params:
 			self.__camera_server__.set_video_stabilisation(
 				req.params['video_stabilisation'] == '1')
-		if 'exposure' in req.params:
-			self.__camera_server__.set_exposure(
-				int(req.params['exposure']))	
+		if 'gain' in req.params:
+			self.__camera_server__.set_gain(
+				int(req.params['gain']))	
 
 		# Orientation
 
@@ -605,10 +605,10 @@ class CameraServer(Server):
 					(parameters['video_stabilisation'] == 1)
 			else:
 				self.__video_stabilisation__ = False
-			if 'exposure' in parameters:
-				self.__exposure__ = parameters['exposure']
+			if 'gain' in parameters:
+				self.__gain__ = parameters['gain']
 			else:
-				self.__exposure__ = 681
+				self.__gain__ = 1
 
 			# Orientation
 
@@ -711,7 +711,7 @@ class CameraServer(Server):
 			self.__shutter_speed__ = 0
 			# TODO(marcin.sielski): Change it to True
 			self.__video_stabilisation__ = False
-			self.__exposure__ = 681
+			self.__gain__ = 1
 
 			# Orientation
 
@@ -810,7 +810,7 @@ class CameraServer(Server):
 				'iso': self.__iso__,
 				'shutter_speed': self.__shutter_speed__,
 				'video_stabilisation': int(self.__video_stabilisation__),
-				'exposure': self.__exposure__,
+				'gain': self.__gain__,
 
 				# Orientation
 
@@ -1529,7 +1529,8 @@ class CameraServer(Server):
 			# Controls
 
 			source.set_property('exposure-mode', self.__exposure_mode__)
-			source.set_property('exposure', self.__exposure__)
+			source.set_property('shutter-speed', self.__shutter_speed__)
+			source.set_property('gain', self.__gain__)
 
 			# Orientation
 
@@ -1890,13 +1891,13 @@ class CameraServer(Server):
 		"""
 
 		self.__exposure_mode__ = exposure_mode
+		if self.__exposure_mode__ == 1:
+			self.__shutter_speed__ = 0
 		if self.__exposure_mode__ == 0 and self.__model__ == 'imx219':
 			self.restart()
 		else:
 			self.__source__.set_property('exposure-mode',
 			self.__exposure_mode__)
-			if self.__exposure_mode__ == 0 and self.__model__ == 'ov9281':
-				self.set_exposure(self.__exposure__)
 
 
 	def set_metering_mode(self, metering_mode):
@@ -1949,7 +1950,15 @@ class CameraServer(Server):
 		"""
 
 		self.__shutter_speed__ = shutter_speed
-		self.restart()
+		if self.__shutter_speed__ == 0:
+			self.__exposure_mode__ = 1
+		else:
+			self.__exposure_mode__ = 0
+		if self.__model__ == 'imx219':
+			self.restart()
+		if self.__model__ == 'ov9281':
+			self.__source__.set_property(
+				'shutter-speed', self.__shutter_speed__)
 
 
 	def set_video_stabilisation(self, video_stabilisation):
@@ -1969,17 +1978,17 @@ class CameraServer(Server):
 			self.restart()
 
 
-	def set_exposure(self, exposure):
-
+	def set_gain(self, gain):
+	
 		"""
-		Set exposure mode
+		Set gain
 
 		Args:
-			exposure_mode (int): exposure mode
+			gain (int): gain
 		"""
 
-		self.__exposure__ = exposure
-		self.__source__.set_property('exposure', self.__exposure__)
+		self.__gain__ = gain
+		self.__source__.set_property('gain', self.__gain__)
 
 
 	# Orientation
