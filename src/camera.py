@@ -895,6 +895,7 @@ class CameraServer(Server):
 				'textoverlay', 'text-overlay')
 			self.__overlay__.set_property('shaded-background', True)
 			self.__overlay__.set_property('valignment','top')
+			self.__overlay__.set_property('font-desc', 'Arial, 12')
 
 		self.__raw_tee__ = Gst.ElementFactory.make('tee', 'raw-tee')
 
@@ -1483,7 +1484,7 @@ class CameraServer(Server):
 			source.set_property('annotation-mode', self.__stats__)
 			source.set_property(
 				'annotation-text', 
-				'Copyright (c) 2021 Marcin Sielski ' + self.__model__ + ' ')
+				'Copyright (c) 2021 Marcin Sielski\n\n' + self.__model__ + ' ')
 			# NOTE(marcin.sielski): camera-timeout property is not available in 
 			# regular GStreamer builds.
 			source.set_property('camera-timeout', self.__camera_timeout__)
@@ -2232,11 +2233,11 @@ class CameraServer(Server):
 					'C DSK: ' + str(round(DiskUsage().usage, 1)) + 
 					'% THR: ' + subprocess.check_output(
 						['vcgencmd', 'get_throttled']).decode('utf-8').replace(
-							'throttled=','').strip() + '\n' +	str(tm.tm_hour) 
-							+ ':' + str(tm.tm_min).zfill(2) + ':' + 
+							'throttled=','').strip() + '\n' + self.__model__ + 
+							' ' + str(tm.tm_hour) + ':' + 
+							str(tm.tm_min).zfill(2) + ':' + 
 							str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/'
-							+ str(tm.tm_mday) + '/' + str(tm.tm_year) + ' ' +
-							self.__model__ 
+							+ str(tm.tm_mday) + '/' + str(tm.tm_year)				 
 			)
 		logging.debug(function_name + ": true")
 		return True
@@ -2288,10 +2289,10 @@ class CameraServer(Server):
 				else:
 					self.__overlay__.set_property(
 					'text', 'Copyright (c) 2021 Marcin Sielski\n' +
-					str(tm.tm_hour) + ':' + 
+					self.__model__ + ' ' + str(tm.tm_hour).zfill(2) + ':' + 
 					str(tm.tm_min).zfill(2) + ':' + str(tm.tm_sec).zfill(2) +
 					' ' + str(tm.tm_mon) + '/' + str(tm.tm_mday) + '/' + 
-					str(tm.tm_year) + ' ' + self.__model__)
+					str(tm.tm_year))
 					self.__overlay__.set_property('silent', False)
 					self.__stats_id__ = GLib.timeout_add_seconds(
 						1, self.__on_stats__)
