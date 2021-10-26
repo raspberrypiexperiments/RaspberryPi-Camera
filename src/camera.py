@@ -3221,9 +3221,10 @@ if __name__ == '__main__':
 
 	args = camera_service.get_parser().parse_args()
 	
-	logging.basicConfig(
-		format="%(asctime)s %(levelname)s: %(message)s",
-		level=getattr(logging, args.debug.upper()))
+	if getattr(logging, args.debug.upper()):
+		logging.basicConfig(
+			format="%(asctime)s %(levelname)s: %(message)s",
+			level=getattr(logging, args.debug.upper()))
 
 	try:
 		with picamera.PiCamera() as camera:
