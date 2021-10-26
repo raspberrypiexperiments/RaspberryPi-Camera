@@ -1082,6 +1082,9 @@ function display(data) {
 		$('#gain_button').removeClass('hide').show();
 		$('#gain').removeClass('hide').show();
 		$('#gain').val(data.gain);
+		$('#awb_button').removeClass('hide').show();
+		$('#awb').removeClass('hide').show();
+		$('#awb').val(data.awb);
 	}
 	$('#shutter_speed').val(data.shutter_speed);
 	

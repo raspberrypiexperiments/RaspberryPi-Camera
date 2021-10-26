@@ -411,8 +411,9 @@ class HTTPSServer(WSGIServer):
 			self.__camera_server__.set_video_stabilisation(
 				req.params['video_stabilisation'] == '1')
 		if 'gain' in req.params:
-			self.__camera_server__.set_gain(
-				int(req.params['gain']))	
+			self.__camera_server__.set_gain(int(req.params['gain']))
+		if 'awb' in req.params:
+			self.__camera_server__.set_awb(int(req.params['awb']))
 
 		# Orientation
 
@@ -609,6 +610,10 @@ class CameraServer(Server):
 				self.__gain__ = parameters['gain']
 			else:
 				self.__gain__ = 1
+			if 'awb' in parameters:
+				self.__awb__ = parameters['awb']
+			else:
+				self.__awb__ = 4
 
 			# Orientation
 
@@ -712,6 +717,7 @@ class CameraServer(Server):
 			# TODO(marcin.sielski): Change it to True
 			self.__video_stabilisation__ = False
 			self.__gain__ = 1
+			self.__awb__ = 4
 
 			# Orientation
 
@@ -811,6 +817,7 @@ class CameraServer(Server):
 				'shutter_speed': self.__shutter_speed__,
 				'video_stabilisation': int(self.__video_stabilisation__),
 				'gain': self.__gain__,
+				'awb': self.__awb__,
 
 				# Orientation
 
@@ -1531,6 +1538,7 @@ class CameraServer(Server):
 			source.set_property('exposure-mode', self.__exposure_mode__)
 			source.set_property('shutter-speed', self.__shutter_speed__)
 			source.set_property('gain', self.__gain__)
+			source.set_property('awb', self.__awb__)
 
 			# Orientation
 
@@ -1991,6 +1999,19 @@ class CameraServer(Server):
 		self.__source__.set_property('gain', self.__gain__)
 
 
+	def set_awb(self, awb):
+	
+		"""
+		Set awb
+
+		Args:
+			awb (int): awb
+		"""
+
+		self.__awb__ = awb
+		self.__source__.set_property('awb', self.__awb__)
+
+
 	# Orientation
 
 	def set_rotation(self, rotation):
@@ -2250,7 +2271,8 @@ class CameraServer(Server):
 							str(tm.tm_min).zfill(2) + ':' + 
 							str(tm.tm_sec).zfill(2) + ' ' + str(tm.tm_mon) + '/'
 							+ str(tm.tm_mday) + '/' + str(tm.tm_year) + '\n' +
-							'Shutter Speed: ' + str(shutter_speed)			 
+							'Shutter (current: ' + str(shutter_speed) + 
+							', range: 30000)'	 
 			)
 		logging.debug(function_name + ": true")
 		return True
@@ -3047,18 +3069,19 @@ class CameraServer(Server):
 		for h in root.handlers[:]:
 			root.removeHandler(h)
 			h.close()
-		if self.__logging_level__ == 0:
-			Gst.debug_set_active(False)
-			logging.basicConfig(
-				format="%(asctime)s %(levelname)s: %(message)s",
-				level=self.__default_logging_level__)
-		else:
-			Gst.debug_set_colored(False)
-			Gst.debug_set_default_threshold((50-self.__logging_level__+10)/10)
-			Gst.debug_set_active(True)
-			logging.basicConfig(
-				format="%(asctime)s %(levelname)s: %(message)s",
-				level=self.__logging_level__)
+		if self.__default_logging_level__ != 0:
+			if self.__logging_level__ == 0:
+				Gst.debug_set_active(False)
+				logging.basicConfig(
+					format="%(asctime)s %(levelname)s: %(message)s",
+					level=self.__default_logging_level__)
+			else:
+				Gst.debug_set_colored(False)
+				Gst.debug_set_default_threshold((50-self.__logging_level__+10)/10)
+				Gst.debug_set_active(True)
+				logging.basicConfig(
+					format="%(asctime)s %(levelname)s: %(message)s",
+					level=self.__logging_level__)
 		logging.debug(function_name + ": exit")
 
 
