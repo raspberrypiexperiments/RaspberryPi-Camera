@@ -321,21 +321,21 @@ SOFTWARE.
 						</div>	  
 						<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="settings_header" data-bs-parent="#management">
 							<div class="accordion-body">
-								<button type="button" class="btn btn-lg btn-dark" disabled>Exposure Mode</button>
-								<select class="form-select form-control-lg bg-dark text-light" aria-label="exposure_mode" onchange="change('exposure_mode')" id="exposure_mode">
-									<option id="fireworks" class="hide" value="12">fireworks</option>
-									<option id="antishake" class="hide" value="11">antishake</option>
-									<option id="fixedfps" class="hide" value="10">fixedfps</option>
-									<option id="verylong" class="hide" value="9">verylong</option>
-									<option id="beach" class="hide" value="8">beach</option>
-									<option id="snow" class="hide" value="7">snow</option>
-									<option id="sports" class="hide" value="6">sports</option>
-									<option id="spotlight" class="hide" value="5">spotlight</option>
-									<option id="backlight" class="hide" value="4">backlight</option>
-									<option id="nightpreview" class="hide" value="3">nightpreview</option>
-									<option id="night" class="hide" value="2">night</option>
-									<option id="auto" value="1" selected>auto</option>
-									<option id="off" value="0">off</option>
+								<button type="button" class="btn btn-lg btn-dark hide" disabled>Exposure Mode</button>
+								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="exposure_mode" onchange="change('exposure_mode')" id="exposure_mode">
+									<option value="12">fireworks</option>
+									<option value="11">antishake</option>
+									<option value="10">fixedfps</option>
+									<option value="9">verylong</option>
+									<option value="8">beach</option>
+									<option value="7">snow</option>
+									<option value="6">sports</option>
+									<option value="5">spotlight</option>
+									<option value="4">backlight</option>
+									<option value="3">nightpreview</option>
+									<option value="2">night</option>
+									<option value="1" selected>auto</option>
+									<option value="0">off</option>
 								</select>	
 								<button type="button" class="btn btn-lg btn-dark hide" id="metering_mode_button" disabled>Exposure Metering Mode</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="metering_mode" onchange="change('metering_mode')" id="metering_mode">
@@ -387,41 +387,41 @@ SOFTWARE.
 								<button type="button" class="btn btn-lg btn-dark hide" aria-label="video_stabilisation" onclick="change('video_stabilisation')"  id="video_stabilisation" value="0"><i class="fas fa-water"></i></button>
 								<button type="button" class="btn btn-lg btn-dark hide" id="gain_button" disabled>Gain</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="gain" onchange="change('gain')" id="gain">
-									<option value="15">15</option>
-									<option value="14">14</option>
-									<option value="13">13</option>
-									<option value="12">12</option>
-									<option value="11">11</option>
-									<option value="10">10</option>
-									<option value="9">&nbsp;&nbsp;9</option>
-									<option value="8">&nbsp;&nbsp;8</option>
-									<option value="7">&nbsp;&nbsp;7</option>
-									<option value="6">&nbsp;&nbsp;6</option>
-									<option value="5">&nbsp;&nbsp;5</option>
-									<option value="4">&nbsp;&nbsp;4</option>
-									<option value="3">&nbsp;&nbsp;3</option>
-									<option value="2">&nbsp;&nbsp;2</option>
-									<option value="1">&nbsp;&nbsp;1</option>
-									<option value="0">&nbsp;&nbsp;0</option>
+									<option value="15">15x</option>
+									<option value="14">14x</option>
+									<option value="13">13x</option>
+									<option value="12">12x</option>
+									<option value="11">11x</option>
+									<option value="10">10x</option>
+									<option value="9">&nbsp;&nbsp;9x</option>
+									<option value="8">&nbsp;&nbsp;8x</option>
+									<option value="7">&nbsp;&nbsp;7x</option>
+									<option value="6">&nbsp;&nbsp;6x</option>
+									<option value="5">&nbsp;&nbsp;5x</option>
+									<option value="4">&nbsp;&nbsp;4x</option>
+									<option value="3">&nbsp;&nbsp;3x</option>
+									<option value="2">&nbsp;&nbsp;2x</option>
+									<option value="1">&nbsp;&nbsp;1x</option>
+									<option value="0">&nbsp;&nbsp;0x</option>
 								</select>	
 								<button type="button" class="btn btn-lg btn-dark hide" id="awb_button" disabled>AWB</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="awb" onchange="change('awb')" id="awb">
-									<option value="15">15</option>
-									<option value="14">14</option>
-									<option value="13">13</option>
-									<option value="12">12</option>
-									<option value="11">11</option>
-									<option value="10">10</option>
-									<option value="9">&nbsp;&nbsp;9</option>
-									<option value="8">&nbsp;&nbsp;8</option>
-									<option value="7">&nbsp;&nbsp;7</option>
-									<option value="6">&nbsp;&nbsp;6</option>
-									<option value="5">&nbsp;&nbsp;5</option>
-									<option value="4" selected>&nbsp;&nbsp;4</option>
-									<option value="3">&nbsp;&nbsp;3</option>
-									<option value="2">&nbsp;&nbsp;2</option>
-									<option value="1">&nbsp;&nbsp;1</option>
-									<option value="0">&nbsp;&nbsp;0</option>
+									<option value="15">3.75x</option>
+									<option value="14">3.50x</option>
+									<option value="13">3.25x</option>
+									<option value="12">3.00x</option>
+									<option value="11">2.75x</option>
+									<option value="10">2.50x</option>
+									<option value="9">2.25x</option>
+									<option value="8">2.00x</option>
+									<option value="7">1.75x</option>
+									<option value="6">1.50x</option>
+									<option value="5">1.25x</option>
+									<option value="4" selected>1.00x</option>
+									<option value="3">0.75x</option>
+									<option value="2">0.50x</option>
+									<option value="1">0.25x</option>
+									<option value="0">0.00x</option>
 									<option value="-1">auto</option>
 								</select>	
 							</div>

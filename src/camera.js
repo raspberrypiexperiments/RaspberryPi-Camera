@@ -982,19 +982,10 @@ function display(data) {
 
 	// Settings
 
-	$('#exposure_mode').val(data.exposure_mode);
 	if (data.model == 'ov5647' || data.model == 'imx219') {
-		$('#night').removeClass('hide').show()
-		$('#nightpreview').removeClass('hide').show()
-		$('#backlight').removeClass('hide').show()
-		$('#spotlight').removeClass('hide').show()
-		$('#sports').removeClass('hide').show()
-		$('#snow').removeClass('hide').show()
-		$('#beach').removeClass('hide').show()
-		$('#verylong').removeClass('hide').show()
-		$('#nifixedfpsght').removeClass('hide').show()
-		$('#antishake').removeClass('hide').show()
-		$('#fireworks').removeClass('hide').show()
+		$('#exposure_mode_buton').removeClass('hide').show()
+		$('#exposure_mode').removeClass('hide').show()
+		$('#exposure_mode').val(data.exposure_mode);
 		$('#metering_mode_button').removeClass('hide').show()
 		$('#metering_mode').removeClass('hide').show()
 		$('#metering_mode').val(data.metering_mode);
