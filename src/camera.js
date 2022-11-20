@@ -503,7 +503,7 @@ function display(data) {
 	// Quality
 
 	$('#resolution').val(data.width+'x'+data.height);
-	if (data.model == 'ov5647' || data.model == 'imx219') {
+	if (data.model == 'ov5647' || data.model == 'imx219' || data.model == 'imx477') {
 		switch(parseInt(data.sensor_mode, 10)) {
 			case 0: // auto
 				$('#framerate').html(' \
@@ -885,7 +885,7 @@ function display(data) {
 	$('#bitrate_mode').val(data.bitrate_mode)
 	$('#bitrate').val(data.bitrate);
 	$('#sensor_mode').val(data.sensor_mode);
-	if (data.model == 'ov5647' || data.model == 'imx219') {
+	if (data.model == 'ov5647' || data.model == 'imx219' || data.model == 'imx477') {
 		if (data.sensor_mode == '0' || data.sensor_mode == '2' ||
 			data.sensor_mode == '3' || data.sensor_mode == '4') {
 			zoom = 0;
@@ -929,7 +929,7 @@ function display(data) {
 		$('#sensor_mode_6').removeClass('hide').show().html("&nbsp;&nbsp;640x480 &nbsp;4:3 &nbsp;42.1-60fps full");
 		$('#sensor_mode_7').removeClass('hide').show().html("&nbsp;&nbsp;640x480 &nbsp;4:3 &nbsp;60.1-90fps full");													
 	}
-	if (data.model == 'imx219') {
+	if (data.model == 'imx219' || data.model == 'imx477') {
 		$('#sensor_mode_0').removeClass('hide').show().html("auto");
 		$('#sensor_mode_1').removeClass('hide').show().html("1920x1080 16:9 0.1-30fps partial");
 		$('#sensor_mode_2').removeClass('hide').show().html("3280x2464 &nbsp;4:3 0.1-15fps full");
@@ -967,7 +967,7 @@ function display(data) {
 
 	// Effects
 
-	if (data.model == 'ov5647' || data.model == 'imx219') {
+	if (data.model == 'ov5647' || data.model == 'imx219' || data.model == 'imx477') {
 		$('#effects').removeClass('hide').show()
 		$('#brightness').val(data.brightness);
 		$('#contrast').val(data.contrast);
@@ -982,8 +982,8 @@ function display(data) {
 
 	// Settings
 
-	if (data.model == 'ov5647' || data.model == 'imx219') {
-		$('#exposure_mode_buton').removeClass('hide').show()
+	if (data.model == 'ov5647' || data.model == 'imx219' || data.model == 'imx477') {
+		$('#exposure_mode_button').removeClass('hide').show()
 		$('#exposure_mode').removeClass('hide').show()
 		$('#exposure_mode').val(data.exposure_mode);
 		$('#metering_mode_button').removeClass('hide').show()
@@ -996,6 +996,23 @@ function display(data) {
 		$('#iso').removeClass('hide').show()
 		$('#iso').val(data.iso);
 		$('#shutter_speed').html(' \
+			<option value="21317838">maximum</option> \
+			<option value="20000000">20 s</option> \
+			<option value="20000000">15 s</option> \
+			<option value="10000000">10 s</option> \
+			<option value="9000000">9 s</option> \
+			<option value="8000000">8 s</option> \
+			<option value="7000000">7 s</option> \
+			<option value="6000000">6 s</option> \
+			<option value="5000000">5 s</option> \
+			<option value="4000000">4 s</option> \
+			<option value="3000000">3 s</option> \
+			<option value="2000000">2 s</option> \
+			<option value="1000000">1 s</option> \
+			<option value="900000">900 ms</option> \
+			<option value="800000">800 ms</option> \
+			<option value="700000">700 ms</option> \
+			<option value="600000">600 ms</option> \
 			<option value="500000">500 ms</option> \
 			<option value="400000">400 ms</optio> \
 			<option value="300000">300 ms</option> \
@@ -1031,17 +1048,19 @@ function display(data) {
 			<option value="1">minimum</option> \
 			<option value="0">auto</option> \
 		');
-		$('#video_stabilisation_button').removeClass('hide').show();
-		$('#video_stabilisation').removeClass('hide').show();
-		$('#video_stabilisation').val(data.video_stabilisation);
-		if (data.video_stabilisation == '0') {
-			$('#video_stabilisation').removeClass('active');
-			$('#video_stabilisation').removeClass('btn-light');
-			$('#video_stabilisation').addClass('btn-dark');
-		} else {
-			$('#video_stabilisation').addClass('active');
-			$('#video_stabilisation').removeClass('btn-dark');
-			$('#video_stabilisation').addClass('btn-light');
+		if (data.model == 'ov5647' || data.model == 'imx219') {
+			$('#video_stabilisation_button').removeClass('hide').show();
+			$('#video_stabilisation').removeClass('hide').show();
+			$('#video_stabilisation').val(data.video_stabilisation);
+			if (data.video_stabilisation == '0') {
+				$('#video_stabilisation').removeClass('active');
+				$('#video_stabilisation').removeClass('btn-light');
+				$('#video_stabilisation').addClass('btn-dark');
+			} else {
+				$('#video_stabilisation').addClass('active');
+				$('#video_stabilisation').removeClass('btn-dark');
+				$('#video_stabilisation').addClass('btn-light');
+			}
 		}
 	}
 	if (data.model == 'ov9281') {
@@ -1081,7 +1100,7 @@ function display(data) {
 	
 	// Orientation
 
-	if (data.model == 'ov5647' || data.model == 'imx219') {
+	if (data.model == 'ov5647' || data.model == 'imx219' || data.model == 'imx477') {
 		$('#rotation_button').removeClass('hide').show()
 		$('#rotation').removeClass('hide').show()
 		$('#rotation').val(data.rotation);
@@ -1106,7 +1125,7 @@ function display(data) {
 		$('#vflip').removeClass('btn-dark');
 		$('#vflip').addClass('btn-light');
 	}
-	if (data.model == 'ov5647' || data.model == 'imx219') {
+	if (data.model == 'ov5647' || data.model == 'imx219' || data.model == 'imx477') {
 		$('#video_direction_button').removeClass('hide').show()
 		$('#video_direction').removeClass('hide').show()
 		$('#video_direction').val(data.video_direction);

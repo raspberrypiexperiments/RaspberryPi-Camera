@@ -321,7 +321,7 @@ SOFTWARE.
 						</div>	  
 						<div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="settings_header" data-bs-parent="#management">
 							<div class="accordion-body">
-								<button type="button" class="btn btn-lg btn-dark hide" disabled>Exposure Mode</button>
+								<button type="button" class="btn btn-lg btn-dark hide" id="exposure_mode_button" disabled>Exposure Mode</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="exposure_mode" onchange="change('exposure_mode')" id="exposure_mode">
 									<option value="12">fireworks</option>
 									<option value="11">antishake</option>
@@ -334,7 +334,7 @@ SOFTWARE.
 									<option value="4">backlight</option>
 									<option value="3">nightpreview</option>
 									<option value="2">night</option>
-									<option value="1" selected>auto</option>
+									<option value="1" selected>ISO</option>
 									<option value="0">off</option>
 								</select>	
 								<button type="button" class="btn btn-lg btn-dark hide" id="metering_mode_button" disabled>Exposure Metering Mode</button>
@@ -371,14 +371,10 @@ SOFTWARE.
 								<button type="button" class="btn btn-lg btn-dark hide" id="iso_button" disabled>ISO</button>
 								<select class="form-select form-control-lg bg-dark text-light hide" aria-label="iso" onchange="change('iso')" id="iso">
 									<option value="800">800</option>
-									<option value="700">700</option>
-									<option value="600">600</option>
-									<option value="500">500</option>
 									<option value="400">400</option>
-									<option value="300">300</option>
 									<option value="200">200</option>
 									<option value="100">100</option>
-									<option value="0" selected>&nbsp;&nbsp;&nbsp;&nbsp;0</option>
+									<option value="0" selected>auto</option>
 								</select>	
 								<button type="button" class="btn btn-lg btn-dark" id="shutter_speed_button" disabled>Shutter Speed</button>
 								<select class="form-select form-control-lg bg-dark text-light" aria-label="shutter_speed" onchange="change('shutter_speed')" id="shutter_speed">
