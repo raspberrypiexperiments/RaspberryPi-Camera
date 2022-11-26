@@ -905,7 +905,7 @@ class CameraServer(Server):
 		if self.__model__ == 'imx219' or self.__model__ == 'imx477':
 			self.__source_caps__.set_value('format', 'I420')                        
 		if self.__model__ == 'ov9281':
-			self.__source_caps__.set_value('format', 'GRAY8')
+			self.__source_caps__.set_value('format', 'GRAY8')		
 		self.__source_caps__.set_value(
 			'framerate', Gst.Fraction(self.__framerate__, 1))
 
@@ -1391,7 +1391,8 @@ class CameraServer(Server):
 			):
 				self.__pipeline__.set_state(Gst.State.PLAYING)
 				sinkpad = self.__source__.get_static_pad("src").get_peer()
-				sinkpad.send_event(Gst.Event.new_eos())
+				if sinkpad is not None:
+					sinkpad.send_event(Gst.Event.new_eos())
 			else:
 				# if error already is pending
 				if self.__error_lock__.locked():

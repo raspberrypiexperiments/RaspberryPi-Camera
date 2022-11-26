@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2021 Marcin Sielski <marcin.sielski@gmail.com>
+# Copyright (c) 2021-2022 Marcin Sielski <marcin.sielski@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,13 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+PYTHONVERION=`python --version | cut -d' ' -f2 | cut -d'.' -f1,2`
+
 dependencies:
 	sudo apt update
 	sudo apt upgrade -y
 	#sudo apt install -y python3-netifaces
 	sudo apt install npm -y
 	sudo npm -g install n
-	sudo n lts
+	sudo n v16
 	sudo npm i uglify-js -g
 	pip3 install --user falcon
 	pip3 install --user wsgiserver
@@ -43,7 +45,8 @@ config:
 	sudo sysctl -p
 
 install: dependencies config
-	if ! patch -R -d /home/$$USER/.local -p1 -s -f --dry-run < src/0002_wsgiserver.py.patch; then patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch; fi
+	ln -s /home/$$USER/.local/lib/python$(PYTHONVERION) /home/$$USER/.local/lib/python
+	if ! patch -R -d /home/$$USER/.local -p1 -s -f --dry-run < src/0002_wsgiserver.py.patch; then patch -d /home/$$USER/.local -p1 < src/0002_wsgiserver.py.patch; fi || true
 	rm -rf httpsserver.js
 	wget https://gist.githubusercontent.com/bencentra/909830fb705d5892b9324cffbca3926f/raw/a80edf0fdf0f38e4a43210e6438cbe511acc21a7/server.js -O httpsserver.js
 	sudo mkdir -p /opt/camera/bin
@@ -67,7 +70,7 @@ install: dependencies config
 	cd /opt/camera/share/camera && sudo npm i webrtc-adapter
 	cd /opt/camera/share/camera && sudo npm i jquery
 	cd /opt/camera/share/camera && sudo npm i bootstrap
-	cd /opt/camera/share/camera && sudo npm i bootbox
+	cd /opt/camera/share/camera && sudo npm i bootbox@4.4.0
 	cd /opt/camera/share/camera && sudo npm i @fortawesome/fontawesome-free
 	sudo bash -c "uglifyjs /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.js > /opt/camera/share/camera/node_modules/webrtc-adapter/out/adapter.min.js"
 	if ! patch -R -d / -p1 -s -f --dry-run <src/0001_janus.plugin.streaming.jcfg.patch; then sudo patch -d / -p1 < src/0001_janus.plugin.streaming.jcfg.patch; fi

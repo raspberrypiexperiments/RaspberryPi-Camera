@@ -16,7 +16,8 @@ __*imx219*__ imager settings, video orientation, recording controls.
 This repository depends on:
 * [RapsberryPi-Arducam](https://github.com/raspberrypiexperiments/RaspberryPi-Arducam),
 * [RaspberryPi-Janus-Gateway](https://github.com/raspberrypiexperiments/RaspberryPi-Janus-Gateway),
-* [RaspberryPi-GStreamer-1.0](https://github.com/raspberrypiexperiments/RaspberryPi-GStreamer-1.0).
+* [RaspberryPi-GStreamer-1.0](https://github.com/raspberrypiexperiments/RaspberryPi-GStreamer-1.0) on Buster,
+* [RaspberryPi-gst-rpicamsrc](https://github.com/raspberrypiexperiments/RaspberryPi-gst-rpicamsrc) on Bullseye.
 
 
 ## Architecture
@@ -46,13 +47,22 @@ This repository depends on:
 * Rapsberry Pi Camera Module v2,
 * Arducam ov9281 B0162.
 
+## Known supported OS
+
+* Buster,
+* Bullseye.
+
 ## Installation
 
 Installation procedure:
 
 ```bash
 git clone --recurse-submodules -j$(nproc) https://github.com/raspberrypiexperiments/RaspberryPi-Camera.git
+```
+```bash
 cd RaspberryPi-Camera
+```
+```bash
 make install
 ```
 
@@ -62,7 +72,11 @@ Uninstallation procedure:
 
 ```bash
 make uninstall
+```
+```bash
 cd ..
+```
+```bash
 sudo rm -rf RaspberryPi-Camera
 ```
 
@@ -70,4 +84,4 @@ sudo rm -rf RaspberryPi-Camera
 
 MIT License
 
-Copyright (c) 2021 Marcin Sielski <marcin.sielski@gmail.com>
+Copyright (c) 2021-2022 Marcin Sielski <marcin.sielski@gmail.com>
